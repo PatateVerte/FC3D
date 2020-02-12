@@ -22,6 +22,19 @@ typedef struct
     //void* Transform(void* obj, wf3d_quat q_rot, wf3d_vect3d v)
     void* (*Transform)(void*, wf3d_quat, wf3d_vect3d);
 
-} fc3d_object_interface;
+    //wf3d_vect3d Center(void* obj)
+    wf3d_vect3d (*Center)(void* obj);
+
+    //float Radius(void* obj)
+    float (*Radius)(void*);
+
+} fc3d_wolf_object_interface;
+
+typedef struct
+{
+    void* obj;
+    fc3d_wolf_object_interface const* obj_interface;
+
+} fc3d_wolf_object;
 
 #endif // FC3D_OBJECT_INTERFACE_H_INCLUDED
