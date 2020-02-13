@@ -12,6 +12,6 @@ typedef enum
 
     FC3D_INVALID_PARAMETER = WF3D_INVALID_PARAMETER
 
-} wf3d_error;
+} fc3d_error;
 
 #endif // FC3D_ERROR_H_INCLUDED
