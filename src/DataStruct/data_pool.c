@@ -39,7 +39,7 @@ void fc3d_DataPool_Destroy(fc3d_DataPool* data_pool)
 
 //Rewind a DataPool
 //Return a pointer to the first data
-//
+//Cannot fail
 void* fc3d_DataPool_Rewind(fc3d_DataPool* data_pool)
 {
     data_pool->current_block_ind = 0;

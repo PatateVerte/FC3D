@@ -3,7 +3,7 @@
 //Set up a new node
 //
 //
-fc3d_octree_node* fc3d_octree_node_Set(fc3d_octree_node* node, wf3d_vect3d center, float half_size)
+fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree_node* node, wf3d_vect3d center, float half_size)
 {
     node->center = center;
     node->half_size = half_size;
@@ -23,7 +23,7 @@ fc3d_octree_node* fc3d_octree_node_Set(fc3d_octree_node* node, wf3d_vect3d cente
 //Activates children
 //Return a pointer to the first child
 //
-fc3d_octree_node* fc3d_octree_node_ChildrenOn(fc3d_octree_node* node, fc3d_DataPool* octree_children_data_pool)
+fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering_octree_node* node, fc3d_DataPool* octree_children_data_pool)
 {
     if(node->children == NULL)
     {
@@ -49,7 +49,7 @@ fc3d_octree_node* fc3d_octree_node_ChildrenOn(fc3d_octree_node* node, fc3d_DataP
                     }
                 }
 
-                fc3d_octree_node_Set(node->children + k, child_center, child_half_size);
+                fc3d_rendering_octree_node_Set(node->children + k, child_center, child_half_size);
             }
         }
     }
@@ -60,7 +60,7 @@ fc3d_octree_node* fc3d_octree_node_ChildrenOn(fc3d_octree_node* node, fc3d_DataP
 //Activates auxiliary storage
 //Return a pointer to the auxiliary node created
 //
-fc3d_octree_node* fc3d_octree_node_AuxStorageOn(fc3d_octree_node* node, fc3d_DataPool* octree_auxiliary_data_pool)
+fc3d_rendering_octree_node* fc3d_rendering_octree_node_AuxStorageOn(fc3d_rendering_octree_node* node, fc3d_DataPool* octree_auxiliary_data_pool)
 {
     if(node->auxiliary_storage_node == NULL)
     {
@@ -68,7 +68,7 @@ fc3d_octree_node* fc3d_octree_node_AuxStorageOn(fc3d_octree_node* node, fc3d_Dat
 
         if(node->auxiliary_storage_node != NULL)
         {
-            fc3d_octree_node_Set(node->auxiliary_storage_node, node->center, node->half_size);
+            fc3d_rendering_octree_node_Set(node->auxiliary_storage_node, node->center, node->half_size);
         }
     }
 
@@ -78,7 +78,7 @@ fc3d_octree_node* fc3d_octree_node_AuxStorageOn(fc3d_octree_node* node, fc3d_Dat
 //Insert an object into the node
 //
 //
-fc3d_wolf_object* fc3d_octree_node_InsertObject(fc3d_octree_node* node, fc3d_wolf_object* obj, fc3d_DataPool* octree_auxiliary_data_pool)
+fc3d_wolf_object* fc3d_rendering_octree_node_InsertObject(fc3d_rendering_octree_node* node, fc3d_wolf_object* obj, fc3d_DataPool* octree_auxiliary_data_pool)
 {
     bool has_been_inserted = false;
     for(int k = 0 ; k < FC3D_OCTREE_NODE_NB_OBJECTS && !has_been_inserted ; k++)
@@ -96,10 +96,10 @@ fc3d_wolf_object* fc3d_octree_node_InsertObject(fc3d_octree_node* node, fc3d_wol
     }
     else
     {
-        fc3d_octree_node* aux_node = fc3d_octree_node_AuxStorageOn(node, octree_auxiliary_data_pool);
+        fc3d_rendering_octree_node* aux_node = fc3d_rendering_octree_node_AuxStorageOn(node, octree_auxiliary_data_pool);
         if(aux_node != NULL)
         {
-            return fc3d_octree_node_InsertObject(aux_node, obj, octree_auxiliary_data_pool);
+            return fc3d_rendering_octree_node_InsertObject(aux_node, obj, octree_auxiliary_data_pool);
         }
         else
         {
@@ -111,11 +111,11 @@ fc3d_wolf_object* fc3d_octree_node_InsertObject(fc3d_octree_node* node, fc3d_wol
 //Add an object to the node or the children
 //
 //
-fc3d_wolf_object* fc3d_octree_node_AddObject(fc3d_octree_node* node, fc3d_wolf_object* obj, wf3d_vect3d v_pos, wf3d_quat q_rot, int max_depth, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool)
+fc3d_wolf_object* fc3d_rendering_octree_node_AddObject(fc3d_rendering_octree_node* node, fc3d_wolf_object* obj, wf3d_vect3d v_pos, wf3d_quat q_rot, int max_depth, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool)
 {
     if(max_depth <= 0)
     {
-        return fc3d_octree_node_InsertObject(node, obj, octree_auxiliary_data_pool);
+        return fc3d_rendering_octree_node_InsertObject(node, obj, octree_auxiliary_data_pool);
     }
     else
     {
@@ -146,11 +146,11 @@ fc3d_wolf_object* fc3d_octree_node_AddObject(fc3d_octree_node* node, fc3d_wolf_o
 
         if(fit_into_i_node)
         {
-            fc3d_octree_node* children = fc3d_octree_node_ChildrenOn(node, octree_children_data_pool);
+            fc3d_rendering_octree_node* children = fc3d_rendering_octree_node_ChildrenOn(node, octree_children_data_pool);
 
             if(children != NULL)
             {
-                return fc3d_octree_node_AddObject(children + i_node, obj, v_pos, q_rot, max_depth - 1, octree_children_data_pool, octree_auxiliary_data_pool);
+                return fc3d_rendering_octree_node_AddObject(children + i_node, obj, v_pos, q_rot, max_depth - 1, octree_children_data_pool, octree_auxiliary_data_pool);
             }
             else
             {
@@ -159,7 +159,7 @@ fc3d_wolf_object* fc3d_octree_node_AddObject(fc3d_octree_node* node, fc3d_wolf_o
         }
         else
         {
-            return fc3d_octree_node_InsertObject(node, obj, octree_auxiliary_data_pool);
+            return fc3d_rendering_octree_node_InsertObject(node, obj, octree_auxiliary_data_pool);
         }
     }
 }
@@ -167,20 +167,20 @@ fc3d_wolf_object* fc3d_octree_node_AddObject(fc3d_octree_node* node, fc3d_wolf_o
 //Add an object with no spatial extension
 //
 //
-fc3d_wolf_object* fc3d_octree_node_AddObjectWithoutExtension(fc3d_octree_node* node, fc3d_wolf_object* obj, wf3d_vect3d v_pos, int max_depth, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool)
+fc3d_wolf_object* fc3d_rendering_octree_node_AddObjectWithoutExtension(fc3d_rendering_octree_node* node, fc3d_wolf_object* obj, wf3d_vect3d v_pos, int max_depth, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool)
 {
     if(max_depth <= 0)
     {
-        return fc3d_octree_node_InsertObject(node, obj, octree_auxiliary_data_pool);
+        return fc3d_rendering_octree_node_InsertObject(node, obj, octree_auxiliary_data_pool);
     }
     else
     {
-        fc3d_octree_node* children = fc3d_octree_node_ChildrenOn(node, octree_children_data_pool);
+        fc3d_rendering_octree_node* children = fc3d_rendering_octree_node_ChildrenOn(node, octree_children_data_pool);
 
         if(children != NULL)
         {
             int i_node = wf3d_vect3d_sign_mask( wf3d_vect3d_sub(v_pos, node->center) );
-            return fc3d_octree_node_AddObjectWithoutExtension(children + i_node, obj, v_pos, max_depth - 1, octree_children_data_pool, octree_auxiliary_data_pool);
+            return fc3d_rendering_octree_node_AddObjectWithoutExtension(children + i_node, obj, v_pos, max_depth - 1, octree_children_data_pool, octree_auxiliary_data_pool);
         }
         else
         {

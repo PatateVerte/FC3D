@@ -116,7 +116,7 @@ void fc3d_LinkedList_Destroy(fc3d_LinkedList* linked_list)
 
 //Rewind the linked list and return a pointer to the first element's data
 //
-//
+//Cannot fail
 void* fc3d_LinkedList_Rewind(fc3d_LinkedList* linked_list)
 {
     linked_list->current_element = linked_list->first_element;

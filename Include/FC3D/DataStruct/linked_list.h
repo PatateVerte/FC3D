@@ -48,6 +48,7 @@ fc3d_LinkedList* fc3d_LinkedList_Create(size_t data_size);
 void fc3d_LinkedList_Destroy(fc3d_LinkedList* linked_list);
 
 //Rewind the linked list and return a pointer to the first element's data
+//Cannot fail
 void* fc3d_LinkedList_Rewind(fc3d_LinkedList* linked_list);
 
 //Get the current data
