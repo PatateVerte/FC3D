@@ -22,10 +22,7 @@ void fc3d_LinkedListElement_Destroy(fc3d_LinkedListElement* link_elem);
 void fc3d_LinkedListElement_DestroyRecursively(fc3d_LinkedListElement* link_elem, size_t nb_kept);
 
 //Get the data of the linked list
-static inline void* fc3d_LinkedListElement_GetData(fc3d_LinkedListElement* link_elem)
-{
-    return link_elem->data;
-}
+void* fc3d_LinkedListElement_GetData(fc3d_LinkedListElement* link_elem);
 
 //Get the next element of the linked list
 fc3d_LinkedListElement* fc3d_LinkedListElement_GetNext(fc3d_LinkedListElement* link_elem, bool create, size_t data_size);
@@ -52,10 +49,7 @@ void fc3d_LinkedList_Destroy(fc3d_LinkedList* linked_list);
 void* fc3d_LinkedList_Rewind(fc3d_LinkedList* linked_list);
 
 //Get the current data
-static inline void* fc3d_LinkedList_GetCurrentElement(fc3d_LinkedList* linked_list)
-{
-    return fc3d_LinkedListElement_GetData(linked_list->current_element);
-}
+void* fc3d_LinkedList_GetCurrentElement(fc3d_LinkedList* linked_list);
 
 //Next element
 void* fc3d_LinkedList_NextElement(fc3d_LinkedList* linked_list, bool create);

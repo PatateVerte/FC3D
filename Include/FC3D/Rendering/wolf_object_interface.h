@@ -27,11 +27,4 @@ typedef struct
 
 } fc3d_wolf_object_interface;
 
-typedef struct
-{
-    void* obj;
-    fc3d_wolf_object_interface const* obj_interface;
-
-} fc3d_wolf_object;
-
 #endif // FC3D_OBJECT_INTERFACE_H_INCLUDED

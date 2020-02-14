@@ -59,6 +59,19 @@ void fc3d_LinkedListElement_DestroyRecursively(fc3d_LinkedListElement* link_elem
     }
 }
 
+//Get the data of the linked list
+//
+//
+void* fc3d_LinkedListElement_GetData(fc3d_LinkedListElement* link_elem)
+{
+    if(link_elem == NULL)
+    {
+        return NULL;
+    }
+
+    return link_elem->data;
+}
+
 //Get the next element of the linked list
 //
 //
@@ -119,7 +132,25 @@ void fc3d_LinkedList_Destroy(fc3d_LinkedList* linked_list)
 //Cannot fail
 void* fc3d_LinkedList_Rewind(fc3d_LinkedList* linked_list)
 {
+    if(linked_list == NULL)
+    {
+        return NULL;
+    }
+
     linked_list->current_element = linked_list->first_element;
+    return fc3d_LinkedListElement_GetData(linked_list->current_element);
+}
+
+//Get the current data
+//
+//
+void* fc3d_LinkedList_GetCurrentElement(fc3d_LinkedList* linked_list)
+{
+    if(linked_list == NULL)
+    {
+        return NULL;
+    }
+
     return fc3d_LinkedListElement_GetData(linked_list->current_element);
 }
 
@@ -128,6 +159,11 @@ void* fc3d_LinkedList_Rewind(fc3d_LinkedList* linked_list)
 //
 void* fc3d_LinkedList_NextElement(fc3d_LinkedList* linked_list, bool create)
 {
+    if(linked_list == NULL)
+    {
+        return NULL;
+    }
+
     fc3d_LinkedListElement* next_element = fc3d_LinkedListElement_GetNext(linked_list->current_element, create, linked_list->data_size);
     if(next_element != NULL)
     {
