@@ -15,7 +15,7 @@ fc3d_RenderingOctree* fc3d_RenderingOctree_Create(wf3d_vect3d center, float half
         octree->max_depth = max_depth;
 
         octree->octree_children_data_pool = fc3d_DataPool_Create(children_data_pool_block_len, 8 * sizeof(fc3d_rendering_octree_node));
-        octree->octree_children_data_pool = fc3d_DataPool_Create(auxiliary_data_pool_block_len, sizeof(fc3d_rendering_octree_node));
+        octree->octree_auxiliary_data_pool = fc3d_DataPool_Create(auxiliary_data_pool_block_len, sizeof(fc3d_rendering_octree_node));
 
         if(octree->octree_children_data_pool == NULL || octree->octree_children_data_pool == NULL)
         {
@@ -48,7 +48,7 @@ void fc3d_RenderingOctree_Destroy(fc3d_RenderingOctree* octree)
 //Rewind an octree
 //Cannot fail
 //
-fc3d_RenderingOctree* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* octree)
+fc3d_rendering_octree_node* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* octree)
 {
     if(octree == NULL)
     {
@@ -58,7 +58,7 @@ fc3d_RenderingOctree* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* octree)
     octree->node_0 = fc3d_DataPool_Rewind(octree->octree_children_data_pool);
     fc3d_DataPool_Rewind(octree->octree_auxiliary_data_pool);
 
-    return octree;
+    return fc3d_rendering_octree_node_Set(octree->node_0, octree->center, octree->half_size);
 }
 
 //Add an object into the octree
@@ -72,5 +72,18 @@ fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree*
     }
 
     return fc3d_rendering_octree_node_AddObject(octree->node_0, obj, octree->max_depth, spatial_extension, octree->octree_children_data_pool, octree->octree_auxiliary_data_pool);
+}
+
+//Rasterization
+//
+//
+fc3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_img_gen_interface* img_out, float* depth_buffer, wf3d_camera3d const* cam)
+{
+    if(octree == NULL)
+    {
+        return FC3D_SUCCESS;
+    }
+
+    return fc3d_rendering_octree_node_Rasterization(octree->node_0, img_out, depth_buffer, cam);
 }
 

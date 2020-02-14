@@ -42,6 +42,11 @@ void fc3d_DataPool_Destroy(fc3d_DataPool* data_pool)
 //Cannot fail
 void* fc3d_DataPool_Rewind(fc3d_DataPool* data_pool)
 {
+    if(data_pool == NULL)
+    {
+        return NULL;
+    }
+
     data_pool->current_block_ind = 0;
     return fc3d_LinkedList_Rewind(data_pool->storage);
 }
@@ -51,6 +56,11 @@ void* fc3d_DataPool_Rewind(fc3d_DataPool* data_pool)
 //
 void* fc3d_DataPool_GetCurrentData(fc3d_DataPool* data_pool)
 {
+    if(data_pool == NULL)
+    {
+        return NULL;
+    }
+
     void* current_data_block = fc3d_LinkedList_GetCurrentElement(data_pool->storage);
     return (void*)( (uintptr_t)(data_pool->current_block_ind * data_pool->data_size) + (uintptr_t)current_data_block );
 }
@@ -60,6 +70,11 @@ void* fc3d_DataPool_GetCurrentData(fc3d_DataPool* data_pool)
 //
 void* fc3d_DataPool_NextData(fc3d_DataPool* data_pool)
 {
+    if(data_pool == NULL)
+    {
+        return NULL;
+    }
+
     void* next_data = fc3d_LinkedList_NextElement(data_pool->storage, true);
 
     if(next_data != NULL)

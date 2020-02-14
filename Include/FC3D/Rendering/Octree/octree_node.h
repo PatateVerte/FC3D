@@ -8,6 +8,8 @@
 #include <FC3D/DataStruct/data_pool.h>
 
 #include <WF3D/Geometry/vect3d.h>
+#include <WF3D/Rendering/camera3d.h>
+#include <WF3D/Rendering/Design/image_gen_interface.h>
 
 #define FC3D_OCTREE_NODE_NB_OBJECTS 8
 #define FC3D_OCTREE_MAX_DEPTH 8
@@ -58,5 +60,8 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_InsertObject(fc3d_renderi
 
 //Add an object to the node or the children
 fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_octree_node* node, fc3d_rendering_object* obj, int max_depth, bool spatial_extension, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool);
+
+//Rasterization
+fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_img_gen_interface* img_out, float* depth_buffer, wf3d_camera3d const* cam);
 
 #endif // FC3D_OCTREE_NODE_H_INCLUDED

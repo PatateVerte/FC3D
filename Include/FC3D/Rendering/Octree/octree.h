@@ -28,10 +28,12 @@ void fc3d_RenderingOctree_Destroy(fc3d_RenderingOctree* octree);
 //Rewind an octree
 //Return a pointer to node_0
 //Cannot fail
-fc3d_RenderingOctree* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* octree);
+fc3d_rendering_octree_node* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* octree);
 
 //Add an object into the octree
 fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree* octree, fc3d_rendering_object* obj, bool spatial_extension);
 
+//Rasterization
+fc3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_img_gen_interface* img_out, float* depth_buffer, wf3d_camera3d const* cam);
 
 #endif // FC3D_OCTREE_H_INCLUDED

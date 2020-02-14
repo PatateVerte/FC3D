@@ -185,3 +185,46 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
     }
 }
 
+//Rasterization
+//
+//
+fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_img_gen_interface* img_out, float* depth_buffer, wf3d_camera3d const* cam)
+{
+    if(node == NULL)
+    {
+        return FC3D_SUCCESS;
+    }
+
+    fc3d_error error = FC3D_SUCCESS;
+
+    //Rasterization of the objects
+    if(error == FC3D_SUCCESS)
+    {
+        for(int i = 0 ; i < FC3D_OCTREE_NODE_NB_OBJECTS && error == FC3D_SUCCESS ; i++)
+        {
+            fc3d_rendering_object const* obj = node->objects[i];
+
+            if(obj != NULL)
+            {
+                error = (fc3d_error)obj->wolf_obj_interface->Rasterization(obj->wolf_obj, img_out, depth_buffer, obj->v_pos, obj->q_rot, cam);
+            }
+        }
+    }
+
+    if(error == FC3D_SUCCESS)
+    {
+        error = fc3d_rendering_octree_node_Rasterization(node->auxiliary_storage_node, img_out, depth_buffer, cam);
+    }
+
+    //Rasterization of the children
+    if(node->children != NULL && error == FC3D_SUCCESS)
+    {
+        for(int i = 0 ; i < 8 && error == FC3D_SUCCESS; i++)
+        {
+            error = fc3d_rendering_octree_node_Rasterization(node->children + i, img_out, depth_buffer, cam);
+        }
+    }
+
+    return error;
+}
+

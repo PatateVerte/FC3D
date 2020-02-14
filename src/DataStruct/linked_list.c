@@ -11,6 +11,8 @@ fc3d_LinkedListElement* fc3d_LinkedListElement_Create(size_t data_size)
 {
     fc3d_LinkedListElement* link_elem = malloc(sizeof(*link_elem));
 
+    link_elem->next_element = NULL;
+
     if(link_elem != NULL)
     {
         link_elem->data = malloc(data_size);
