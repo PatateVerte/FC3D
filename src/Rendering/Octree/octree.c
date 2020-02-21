@@ -77,13 +77,13 @@ fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree*
 //Rasterization
 //
 //
-fc3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_img_gen_interface* img_out, float* depth_buffer, wf3d_vect3d cam_v_pos, wf3d_quat cam_q_rot, wf3d_camera3d const* cam)
+fc3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_Image3d* img_out, wf3d_vect3d cam_v_pos, wf3d_quat cam_q_rot, wf3d_camera3d const* cam)
 {
     if(octree == NULL)
     {
         return FC3D_SUCCESS;
     }
 
-    return fc3d_rendering_octree_node_Rasterization(octree->node_0, img_out, depth_buffer, cam_v_pos, cam_q_rot, cam);
+    return fc3d_rendering_octree_node_Rasterization(octree->node_0, img_out, cam_v_pos, cam_q_rot, cam);
 }
 

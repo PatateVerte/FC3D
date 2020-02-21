@@ -6,15 +6,15 @@
 #include <WF3D/Geometry/quat.h>
 #include <WF3D/Rendering/camera3d.h>
 #include <WF3D/Rendering/lightsource.h>
-#include <WF3D/Rendering/Design/image_gen_interface.h>
+#include <WF3D/Rendering/Design/image3d.h>
 
 typedef struct
 {
     //Destroy() parameter
     void (*Destroy)(void);
 
-    //wf3d_error wf3d_PolygonMesh_Rasterization(wf3d_PolygonMesh const* obj, wf3d_img_gen_interface* img_out, float* depth_buffer, wf3d_vect3d v_pos, wf3d_quat q_rot, wf3d_camera3d const* cam)
-    wf3d_error (*Rasterization)(void const*, wf3d_img_gen_interface*, float*, wf3d_vect3d, wf3d_quat, wf3d_camera3d const*);
+    //wf3d_error wf3d_PolygonMesh_Rasterization(wf3d_PolygonMesh const* obj, wf3d_Image3d* img_out, wf3d_vect3d v_pos, wf3d_quat q_rot, wf3d_camera3d const* cam)
+    wf3d_error (*Rasterization)(void const*, wf3d_Image3d*, wf3d_vect3d, wf3d_quat, wf3d_camera3d const*);
 
     //float Radius(void* obj)
     float (*Radius)(void*);
