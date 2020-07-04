@@ -3,7 +3,7 @@
 //Set up a new node
 //
 //
-fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree_node* node, wf3d_vect3d center, float half_size)
+fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree_node* node, owl_v3f32 center, float half_size)
 {
     if(node == NULL)
     {
@@ -41,21 +41,21 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering
 
         if(node->children != NULL)
         {
-            wf3d_vect3d const node_center = node->center;
+            owl_v3f32 const node_center = node->center;
             float const half_size = node->half_size;
             float const child_half_size = 0.5f * half_size;
 
-            wf3d_vect3d base_xyz[3];
-            wf3d_vect3d_base_xyz(base_xyz, half_size);
+            owl_v3f32 base_xyz[3];
+            owl_v3f32_base_xyz(base_xyz, half_size);
 
             for(int k = 0 ; k < 8 ; k++)
             {
-                wf3d_vect3d child_center = wf3d_vect3d_sub(node_center, wf3d_vect3d_broadcast(child_half_size));
+                owl_v3f32 child_center = owl_v3f32_sub(node_center, owl_v3f32_broadcast(child_half_size));
                 for(int b = k ; b != 0 ; b >>= 1)
                 {
                     if((b & 1) != 0)
                     {
-                        wf3d_vect3d_sub(child_center, base_xyz[b]);
+                        owl_v3f32_sub(child_center, base_xyz[b]);
                     }
                 }
 
@@ -133,18 +133,18 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
     }
     else
     {
-        int i_node = wf3d_vect3d_sign_mask( wf3d_vect3d_sub(obj->v_pos, node->center) );
+        int i_node = owl_v3f32_sign_mask( owl_v3f32_sub(obj->v_pos, node->center) );
 
         //Does it fit completely into i_node
         bool fit_into_i_node = false;
 
         if(spatial_extension)
         {
-            wf3d_vect3d const obj_radius_vect = wf3d_vect3d_broadcast( obj->wolf_obj_interface->Radius(obj->wolf_obj) );
-            wf3d_vect3d const rel_center = wf3d_vect3d_sub(obj->v_pos, node->center);
+            owl_v3f32 const obj_radius_vect = owl_v3f32_broadcast( obj->wolf_obj_interface->Radius(obj->wolf_obj) );
+            owl_v3f32 const rel_center = owl_v3f32_sub(obj->v_pos, node->center);
             float quick_test_result = fmaxf(
-                                                wf3d_vect3d_inf_norm( wf3d_vect3d_add( rel_center, obj_radius_vect ) ),
-                                                wf3d_vect3d_inf_norm( wf3d_vect3d_sub( rel_center, obj_radius_vect ) )
+                                                owl_v3f32_norminf( owl_v3f32_add( rel_center, obj_radius_vect ) ),
+                                                owl_v3f32_norminf( owl_v3f32_sub( rel_center, obj_radius_vect ) )
                                             );
             if(quick_test_result <= node->half_size)
             {
@@ -188,7 +188,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
 //Rasterization
 //
 //
-fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_Image3d* img_out, wf3d_vect3d cam_v_pos, wf3d_quat cam_q_rot, wf3d_camera3d const* cam)
+fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_Image3d* img_out, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam)
 {
     if(node == NULL)
     {
@@ -196,7 +196,7 @@ fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
     }
 
     fc3d_error error = FC3D_SUCCESS;
-    wf3d_quat const cam_q_rot_conj = wf3d_quat_conj(cam_q_rot);
+    owl_q32 const cam_q_rot_conj = owl_q32_conj(cam_q_rot);
 
     //Rasterization of the objects
     if(error == FC3D_SUCCESS)
@@ -207,13 +207,13 @@ fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
 
             if(obj != NULL)
             {
-                wf3d_quat rel_q_rot = wf3d_quat_mul(
+                owl_q32 rel_q_rot = owl_q32_mul(
                                                         cam_q_rot_conj,
                                                         obj->q_rot
                                                     );
-                wf3d_vect3d rel_v_pos = wf3d_quat_transform_vect3d(
+                owl_v3f32 rel_v_pos = owl_q32_transform_v3f32(
                                                                     cam_q_rot_conj,
-                                                                    wf3d_vect3d_sub( obj->v_pos, cam_v_pos )
+                                                                    owl_v3f32_sub( obj->v_pos, cam_v_pos )
                                                                    );
 
                 error = (fc3d_error)obj->wolf_obj_interface->Rasterization(obj->wolf_obj, img_out, rel_v_pos, rel_q_rot, cam);
