@@ -188,7 +188,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
 //Rasterization
 //
 //
-fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_Image3d* img_out, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam)
+fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_Image2d* img_out, wf3d_lightsource const* cam_lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam)
 {
     if(node == NULL)
     {
@@ -216,7 +216,7 @@ fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
                                                                     owl_v3f32_sub( obj->v_pos, cam_v_pos )
                                                                    );
 
-                error = (fc3d_error)obj->wolf_obj_interface->Rasterization(obj->wolf_obj, img_out, rel_v_pos, rel_q_rot, cam);
+                error = (fc3d_error)obj->wolf_obj_interface->Rasterization(obj->wolf_obj, img_out, cam_lightsource_list, nb_lightsources, rel_v_pos, rel_q_rot, cam);
             }
         }
     }
@@ -224,7 +224,7 @@ fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
     //Rasterization of the auxiliary storage node
     if(error == FC3D_SUCCESS)
     {
-        error = fc3d_rendering_octree_node_Rasterization(node->auxiliary_storage_node, img_out, cam_v_pos, cam_q_rot, cam);
+        error = fc3d_rendering_octree_node_Rasterization(node->auxiliary_storage_node, img_out, cam_lightsource_list, nb_lightsources, cam_v_pos, cam_q_rot, cam);
     }
 
     //Rasterization of the children
@@ -233,7 +233,7 @@ fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
         for(int i = 0 ; i < 8 && error == FC3D_SUCCESS; i++)
         {
             //Are the children in the view cone ?
-            error = fc3d_rendering_octree_node_Rasterization(node->children + i, img_out, cam_v_pos, cam_q_rot, cam);
+            error = fc3d_rendering_octree_node_Rasterization(node->children + i, img_out, cam_lightsource_list, nb_lightsources, cam_v_pos, cam_q_rot, cam);
         }
     }
 

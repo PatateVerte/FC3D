@@ -11,6 +11,7 @@
 #include <FC3D/DataStruct/data_pool.h>
 
 #include <WF3D/Rendering/camera3d.h>
+#include <WF3D/Rendering/Design/image2d.h>
 #include <WF3D/Rendering/Design/image3d.h>
 #include <WF3D/Rendering/Design/image_gen_interface.h>
 
@@ -65,6 +66,6 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_InsertObject(fc3d_renderi
 fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_octree_node* node, fc3d_rendering_object* obj, int max_depth, bool spatial_extension, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool);
 
 //Rasterization
-fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_Image3d* img_out, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam);
+fc3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_Image2d* img_out, wf3d_lightsource const* cam_lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam);
 
 #endif // FC3D_OCTREE_NODE_H_INCLUDED
