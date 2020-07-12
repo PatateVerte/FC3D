@@ -14,10 +14,10 @@ struct fc3d_LinkedListElement
 //Creates a LinkedListElement
 fc3d_LinkedListElement* fc3d_LinkedListElement_Create(size_t data_size);
 
-//Destroy a DataPoolBlock
+//Destroy a LinkedListElement
 void fc3d_LinkedListElement_Destroy(fc3d_LinkedListElement* link_elem);
 
-//Destroy recursively an DataPoolBlock
+//Destroy recursively a LinkedListElement
 //Starts to destroy only after nb_kept elements
 void fc3d_LinkedListElement_DestroyRecursively(fc3d_LinkedListElement* link_elem, size_t nb_kept);
 
@@ -25,7 +25,7 @@ void fc3d_LinkedListElement_DestroyRecursively(fc3d_LinkedListElement* link_elem
 void* fc3d_LinkedListElement_GetData(fc3d_LinkedListElement* link_elem);
 
 //Get the next element of the linked list
-fc3d_LinkedListElement* fc3d_LinkedListElement_GetNext(fc3d_LinkedListElement* link_elem, bool create, size_t data_size);
+fc3d_LinkedListElement* fc3d_LinkedListElement_GetNext(fc3d_LinkedListElement* link_elem, bool create_if_needed, size_t data_size);
 
 
 
@@ -52,6 +52,6 @@ void* fc3d_LinkedList_Rewind(fc3d_LinkedList* linked_list);
 void* fc3d_LinkedList_GetCurrentElement(fc3d_LinkedList* linked_list);
 
 //Next element
-void* fc3d_LinkedList_NextElement(fc3d_LinkedList* linked_list, bool create);
+void* fc3d_LinkedList_NextElement(fc3d_LinkedList* linked_list, bool create_if_needed);
 
 #endif // FC3D_LINKED_LIST_H_INCLUDED

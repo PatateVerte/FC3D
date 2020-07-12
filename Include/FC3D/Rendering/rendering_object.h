@@ -8,11 +8,11 @@
 
 typedef struct
 {
-    void* wolf_obj;
-    fc3d_wolf_object_interface* wolf_obj_interface;
-
     owl_v3f32 v_pos;
     owl_q32 q_rot;
+
+    void* wolf_obj;
+    fc3d_wolf_object_interface* wolf_obj_interface;
 
 } fc3d_rendering_object;
 

@@ -50,11 +50,6 @@ void fc3d_RenderingOctree_Destroy(fc3d_RenderingOctree* octree)
 //
 fc3d_rendering_octree_node* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* octree)
 {
-    if(octree == NULL)
-    {
-        return NULL;
-    }
-
     octree->node_0 = fc3d_DataPool_Rewind(octree->octree_children_data_pool);
     fc3d_DataPool_Rewind(octree->octree_auxiliary_data_pool);
 
@@ -77,15 +72,15 @@ fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree*
 //Rasterization
 //
 //
-fc3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_Image2d* img_out, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam)
+wf3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_Image2d* img_out, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam)
 {
     if(octree == NULL)
     {
-        return FC3D_SUCCESS;
+        return WF3D_SUCCESS;
     }
     else
     {
-        fc3d_error error = FC3D_SUCCESS;
+        wf3d_error error = WF3D_SUCCESS;
 
         owl_q32 cam_q_rot_conj = owl_q32_conj(cam_q_rot);
         owl_v3f32 opp_cam_v_pos = owl_v3f32_sub(owl_v3f32_zero(), cam_v_pos);
@@ -102,7 +97,7 @@ fc3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d
         }
         else
         {
-            error = FC3D_MEMORY_ERROR;
+            error = WF3D_MEMORY_ERROR;
         }
 
         free(cam_lightsource_list);

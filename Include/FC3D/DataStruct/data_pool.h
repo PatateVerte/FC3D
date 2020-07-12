@@ -22,6 +22,7 @@ typedef struct
 } fc3d_DataPool;
 
 //Create a DataPool
+//data_block_len must be at least 1
 fc3d_DataPool* fc3d_DataPool_Create(size_t data_block_len, size_t data_size);
 
 //Destroy a DataPool

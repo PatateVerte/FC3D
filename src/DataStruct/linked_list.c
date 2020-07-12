@@ -18,7 +18,7 @@ fc3d_LinkedListElement* fc3d_LinkedListElement_Create(size_t data_size)
         link_elem->data = malloc(data_size);
 
         //If an error occured
-        if(link_elem->data == NULL && data_size != 0)
+        if(data_size != 0 && link_elem->data == NULL)
         {
             fc3d_LinkedListElement_Destroy(link_elem);
             link_elem = NULL;
@@ -51,8 +51,8 @@ void fc3d_LinkedListElement_DestroyRecursively(fc3d_LinkedListElement* link_elem
 
         if(nb_kept == 0)
         {
-            fc3d_LinkedListElement_Destroy(link_elem);
             fc3d_LinkedListElement_DestroyRecursively(next_link_elem, 0);
+            fc3d_LinkedListElement_Destroy(link_elem);
         }
         else
         {
@@ -66,22 +66,17 @@ void fc3d_LinkedListElement_DestroyRecursively(fc3d_LinkedListElement* link_elem
 //
 void* fc3d_LinkedListElement_GetData(fc3d_LinkedListElement* link_elem)
 {
-    if(link_elem == NULL)
-    {
-        return NULL;
-    }
-
     return link_elem->data;
 }
 
 //Get the next element of the linked list
 //
 //
-fc3d_LinkedListElement* fc3d_LinkedListElement_GetNext(fc3d_LinkedListElement* link_elem, bool create, size_t data_size)
+fc3d_LinkedListElement* fc3d_LinkedListElement_GetNext(fc3d_LinkedListElement* link_elem, bool create_if_needed, size_t data_size)
 {
     fc3d_LinkedListElement* next_link_elem = link_elem->next_element;
 
-    if(next_link_elem == NULL && create)
+    if(next_link_elem == NULL && create_if_needed)
     {
         next_link_elem = fc3d_LinkedListElement_Create(data_size);
         link_elem->next_element = next_link_elem;
@@ -134,11 +129,6 @@ void fc3d_LinkedList_Destroy(fc3d_LinkedList* linked_list)
 //Cannot fail
 void* fc3d_LinkedList_Rewind(fc3d_LinkedList* linked_list)
 {
-    if(linked_list == NULL)
-    {
-        return NULL;
-    }
-
     linked_list->current_element = linked_list->first_element;
     return fc3d_LinkedListElement_GetData(linked_list->current_element);
 }
@@ -148,25 +138,15 @@ void* fc3d_LinkedList_Rewind(fc3d_LinkedList* linked_list)
 //
 void* fc3d_LinkedList_GetCurrentElement(fc3d_LinkedList* linked_list)
 {
-    if(linked_list == NULL)
-    {
-        return NULL;
-    }
-
     return fc3d_LinkedListElement_GetData(linked_list->current_element);
 }
 
 //Next element
 //
 //
-void* fc3d_LinkedList_NextElement(fc3d_LinkedList* linked_list, bool create)
+void* fc3d_LinkedList_NextElement(fc3d_LinkedList* linked_list, bool create_if_needed)
 {
-    if(linked_list == NULL)
-    {
-        return NULL;
-    }
-
-    fc3d_LinkedListElement* next_element = fc3d_LinkedListElement_GetNext(linked_list->current_element, create, linked_list->data_size);
+    fc3d_LinkedListElement* next_element = fc3d_LinkedListElement_GetNext(linked_list->current_element, create_if_needed, linked_list->data_size);
     if(next_element != NULL)
     {
         linked_list->current_element = next_element;
