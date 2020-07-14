@@ -188,7 +188,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
 //Rasterization
 //
 //
-wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_Image2d* img_out, wf3d_lightsource const* cam_lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam)
+wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_image2d_rectangle* img_out, wf3d_lightsource const* cam_lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam)
 {
     wf3d_error error = WF3D_SUCCESS;
     owl_q32 const cam_q_rot_conj = owl_q32_conj(cam_q_rot);
@@ -204,21 +204,26 @@ wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
 
         if(zf >= 0.0 || (abs_xf > cam->tan_h_half_opening_angle || abs_yf > cam->tan_v_half_opening_angle))
         {
+            float width_f = (float)img_out->img2d->width;
+            float x_minus = (((float)img_out->x_min) - 0.5 * width_f) * cam->tan_h_half_opening_angle / width_f;
+            float x_plus = (((float)img_out->x_max) - 0.5 * width_f) * cam->tan_h_half_opening_angle / width_f;
+            float height_f = (float)img_out->img2d->height;
+            float y_minus = (((float)img_out->y_min) - 0.5 * height_f) * cam->tan_v_half_opening_angle / height_f;
+            float y_plus = (((float)img_out->y_max) - 0.5 * height_f) * cam->tan_v_half_opening_angle / height_f;
+
             owl_v3f32 edges_dir_vect[4] =
             {
-                owl_v3f32_set(-cam->tan_h_half_opening_angle, -cam->tan_v_half_opening_angle, -1.0),
-                owl_v3f32_set(-cam->tan_h_half_opening_angle, cam->tan_v_half_opening_angle, -1.0),
-                owl_v3f32_set(cam->tan_h_half_opening_angle, cam->tan_v_half_opening_angle, -1.0),
-                owl_v3f32_set(cam->tan_h_half_opening_angle, -cam->tan_v_half_opening_angle, -1.0)
+                owl_v3f32_normalize(owl_v3f32_set(x_minus, y_minus, -1.0)),
+                owl_v3f32_normalize(owl_v3f32_set(x_plus, y_minus, -1.0)),
+                owl_v3f32_normalize(owl_v3f32_set(x_plus, y_plus, -1.0)),
+                owl_v3f32_normalize(owl_v3f32_set(x_minus, y_plus, -1.0))
             };
-
-            float inv_dir_vect_square_norm = 1.0 / (1.0 + cam->tan_h_half_opening_angle * cam->tan_h_half_opening_angle + cam->tan_v_half_opening_angle * cam->tan_v_half_opening_angle);
 
             float square_edge_distance = INFINITY;
             float face_distance_list[4];
             for(unsigned int i = 0 ; i < 4 ; i++)
             {
-                float lambda_proj = fmaxf(0.0, owl_v3f32_dot(rel_node_pos, edges_dir_vect[i]) * inv_dir_vect_square_norm);
+                float lambda_proj = fmaxf(0.0, owl_v3f32_dot(rel_node_pos, edges_dir_vect[i]));
                 owl_v3f32 edge_proj = owl_v3f32_scalar_mul(edges_dir_vect[i], lambda_proj);
                 owl_v3f32 edge_diff = owl_v3f32_sub(rel_node_pos, edge_proj);
                 square_edge_distance = fminf(
