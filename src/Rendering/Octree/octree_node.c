@@ -213,17 +213,17 @@ wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
 
             owl_v3f32 edges_dir_vect[4] =
             {
-                owl_v3f32_normalize(owl_v3f32_set(x_minus, y_minus, -1.0)),
-                owl_v3f32_normalize(owl_v3f32_set(x_plus, y_minus, -1.0)),
-                owl_v3f32_normalize(owl_v3f32_set(x_plus, y_plus, -1.0)),
-                owl_v3f32_normalize(owl_v3f32_set(x_minus, y_plus, -1.0))
+                owl_v3f32_set(x_minus, y_minus, -1.0),
+                owl_v3f32_set(x_plus, y_minus, -1.0),
+                owl_v3f32_set(x_plus, y_plus, -1.0),
+                owl_v3f32_set(x_minus, y_plus, -1.0)
             };
 
             float square_edge_distance = INFINITY;
             float face_distance_list[4];
             for(unsigned int i = 0 ; i < 4 ; i++)
             {
-                float lambda_proj = fmaxf(0.0, owl_v3f32_dot(rel_node_pos, edges_dir_vect[i]));
+                float lambda_proj = fmaxf(0.0, owl_v3f32_dot(rel_node_pos, edges_dir_vect[i])) / owl_v3f32_dot(edges_dir_vect[i], edges_dir_vect[i]);
                 owl_v3f32 edge_proj = owl_v3f32_scalar_mul(edges_dir_vect[i], lambda_proj);
                 owl_v3f32 edge_diff = owl_v3f32_sub(rel_node_pos, edge_proj);
                 square_edge_distance = fminf(
@@ -290,6 +290,118 @@ wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
             for(int i = 0 ; i < 8 && error == WF3D_SUCCESS; i++)
             {
                 error = fc3d_rendering_octree_node_Rasterization(node->children + i, img_out, cam_lightsource_list, nb_lightsources, cam_v_pos, cam_q_rot, cam);
+            }
+        }
+    }
+
+    return error;
+}
+
+//Rasterization2
+//
+//
+wf3d_error fc3d_rendering_octree_node_Rasterization2(fc3d_rendering_octree_node* node, wf3d_image3d_image_piece* img_out, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam)
+{
+    wf3d_error error = WF3D_SUCCESS;
+    owl_q32 const cam_q_rot_conj = owl_q32_conj(cam_q_rot);
+
+    //Is the node inside of the view cone ? (the node is considered to be a sphere)
+    bool is_inside_view_cone = true;
+    owl_v3f32 rel_node_pos = owl_q32_transform_v3f32(cam_q_rot_conj, owl_v3f32_sub(node->center, cam_v_pos));
+    if(owl_v3f32_dot(rel_node_pos, rel_node_pos) > 3.0 * node->half_size * node->half_size)
+    {
+        float zf = owl_v3f32_unsafe_get_component(rel_node_pos, 2);
+        float abs_xf = fabsf(owl_v3f32_unsafe_get_component(rel_node_pos, 0) / zf);
+        float abs_yf = fabsf(owl_v3f32_unsafe_get_component(rel_node_pos, 1) / zf);
+
+        if(zf >= 0.0 || (abs_xf > cam->tan_h_half_opening_angle || abs_yf > cam->tan_v_half_opening_angle))
+        {
+            float width_f = (float)img_out->full_img_width;
+            float x_minus = (((float)img_out->x_min) - 0.5 * width_f) * cam->tan_h_half_opening_angle / width_f;
+            float x_plus = (((float)img_out->x_max) - 0.5 * width_f) * cam->tan_h_half_opening_angle / width_f;
+            float height_f = (float)img_out->full_img_height;
+            float y_minus = (((float)img_out->y_min) - 0.5 * height_f) * cam->tan_v_half_opening_angle / height_f;
+            float y_plus = (((float)img_out->y_max) - 0.5 * height_f) * cam->tan_v_half_opening_angle / height_f;
+
+            owl_v3f32 edges_dir_vect[4] =
+            {
+                owl_v3f32_set(x_minus, y_minus, -1.0),
+                owl_v3f32_set(x_plus, y_minus, -1.0),
+                owl_v3f32_set(x_plus, y_plus, -1.0),
+                owl_v3f32_set(x_minus, y_plus, -1.0)
+            };
+
+            float square_edge_distance = INFINITY;
+            float face_distance_list[4];
+            for(unsigned int i = 0 ; i < 4 ; i++)
+            {
+                float lambda_proj = fmaxf(0.0, owl_v3f32_dot(rel_node_pos, edges_dir_vect[i])) / owl_v3f32_dot(edges_dir_vect[i], edges_dir_vect[i]);
+                owl_v3f32 edge_proj = owl_v3f32_scalar_mul(edges_dir_vect[i], lambda_proj);
+                owl_v3f32 edge_diff = owl_v3f32_sub(rel_node_pos, edge_proj);
+                square_edge_distance = fminf(
+                                                square_edge_distance,
+                                                owl_v3f32_dot(edge_diff, edge_diff)
+                                             );
+
+                unsigned int i_next = (i + 1) % 4;
+                owl_v3f32 n = owl_v3f32_normalize(owl_v3f32_cross(edges_dir_vect[i], edges_dir_vect[i_next]));
+                face_distance_list[i] = owl_v3f32_dot(n, rel_node_pos);
+            }
+
+            float face_distance = INFINITY;
+            for(unsigned int i = 0 ; i < 4 ; i++)
+            {
+                unsigned int i_next1 = (i + 1) % 4;
+                unsigned int i_next2 = (i + 3) % 4;
+                unsigned int i_opp = (i + 2) % 4;
+                if(face_distance_list[i_opp] < 0.0 && face_distance_list[i_next1] < 0.0 && face_distance_list[i_next2] < 0.0)
+                {
+                    face_distance = fminf(face_distance, face_distance_list[i]);
+                }
+            }
+
+            float square_distance = fminf(face_distance * face_distance, square_edge_distance);
+            if(square_distance > 3 * node->half_size * node->half_size)
+            {
+                is_inside_view_cone = false;
+            }
+        }
+    }
+
+    if(is_inside_view_cone)
+    {
+        //Rasterization of the objects
+        for(int i = 0 ; i < FC3D_OCTREE_NODE_NB_OBJECTS && error == WF3D_SUCCESS ; i++)
+        {
+            fc3d_rendering_object const* obj = node->objects[i];
+
+            if(obj != NULL)
+            {
+                owl_q32 rel_q_rot = owl_q32_mul(
+                                                        cam_q_rot_conj,
+                                                        obj->q_rot
+                                                    );
+                owl_v3f32 rel_v_pos = owl_q32_transform_v3f32(
+                                                                    cam_q_rot_conj,
+                                                                    owl_v3f32_sub( obj->v_pos, cam_v_pos )
+                                                                   );
+
+                error = obj->wolf_obj_interface->Rasterization2(obj->wolf_obj, img_out, rel_v_pos, rel_q_rot, cam);
+            }
+        }
+
+        //Rasterization of the auxiliary storage node
+        if(error == WF3D_SUCCESS && node->auxiliary_storage_node != NULL)
+        {
+            error = fc3d_rendering_octree_node_Rasterization2(node->auxiliary_storage_node, img_out, cam_v_pos, cam_q_rot, cam);
+        }
+
+        //Rasterization of the children
+        if(error == WF3D_SUCCESS && node->children != NULL)
+        {
+            for(int i = 0 ; i < 8 && error == WF3D_SUCCESS; i++)
+            {
+                error = fc3d_rendering_octree_node_Rasterization2(node->children + i, img_out, cam_v_pos, cam_q_rot, cam);
             }
         }
     }
