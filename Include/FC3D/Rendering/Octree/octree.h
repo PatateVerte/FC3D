@@ -41,6 +41,10 @@ wf3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d
 //Rasterization with multithreading
 wf3d_error fc3d_RenderingOctree_MultiThreadRasterization(fc3d_RenderingOctree* octree, wf3d_Image2d* img_out, unsigned short nb_threads, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam);
 
+//Color of a point, taking reflection and refraction of the surface into account
+//||normal|| = 1
+//wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree* octree, wf3d_color* final_color, owl_v3f32 v_pos, owl_v3f32 normal, wf3d_surface const* surface, int nb_reflections, float near_clipping_distance);
+
 //Multithread ray tracing
 //img3d_thread_buffer_list must contain nb_threads elements of the same size (width and height)
 wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octree, wf3d_Image2d* img_out, wf3d_Image3d** img3d_thread_buffer_list, unsigned short nb_threads, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam);

@@ -38,7 +38,7 @@ struct fc3d_rendering_octree_node
         6   -   +   +
         7   +   +   +
     */
-    fc3d_rendering_octree_node* children;
+    fc3d_rendering_octree_node* children[8];
 
     //Objects contained in the node
     fc3d_rendering_object const* objects[FC3D_OCTREE_NODE_NB_OBJECTS];
@@ -50,9 +50,9 @@ struct fc3d_rendering_octree_node
 //Set up a new node
 fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree_node* node, owl_v3f32 center, float half_size);
 
-//Activates children
+//Activates children i (0 <= i <= 7)
 //Return a pointer to the first child
-fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering_octree_node* node, fc3d_DataPool* octree_children_data_pool);
+fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering_octree_node* node, int i, fc3d_DataPool* octree_children_data_pool);
 
 //Activates auxiliary storage
 //Return a pointer to the auxiliary node created
@@ -65,6 +65,14 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_InsertObject(fc3d_renderi
 //Return NULL if the object wasn't added
 //Return a pointer to the node where it was added otherwise
 fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_octree_node* node, fc3d_rendering_object* obj, int max_depth, bool spatial_extension, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool);
+
+//The intersection between a ray and the objects of the node
+//Return true if the intersection exists, false otherwise
+//Optional parameters (modified only if an intersection has been found) :
+//t to return the parameter for the nearest intersection (v_intersection = ray_origin + t*ray_dir)
+//normal_ret to return the normal of the intersection
+//surface_ret to return the surface of the intersection
+bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree_node* node, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface* surface_ret);
 
 //Rasterization
 wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_image2d_rectangle* img_out, wf3d_lightsource const* cam_lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_v_pos, owl_q32 cam_q_rot, wf3d_camera3d const* cam);

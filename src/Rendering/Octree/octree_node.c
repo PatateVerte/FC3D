@@ -9,9 +9,12 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree
 
     node->half_size = half_size;
 
-    node->children = NULL;
+    for(unsigned int k = 0 ; k < 8 ; k++)
+    {
+        node->children[k] = NULL;
+    }
 
-    for(int k = 0 ; k < FC3D_OCTREE_NODE_NB_OBJECTS ; k++)
+    for(unsigned int k = 0 ; k < FC3D_OCTREE_NODE_NB_OBJECTS ; k++)
     {
         node->objects[k] = NULL;
     }
@@ -21,45 +24,47 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree
     return node;
 }
 
-//Activates children
+//Activates children i
 //Return a pointer to the first child
 //
-fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering_octree_node* node, fc3d_DataPool* octree_children_data_pool)
+fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering_octree_node* node, int i, fc3d_DataPool* octree_children_data_pool)
 {
-    if(node->children == NULL)
+    if(0 <= i && i < 8)
     {
-        node->children = fc3d_DataPool_NextData(octree_children_data_pool);
-
-        if(node->children != NULL)
+        if(node->children[i] == NULL)
         {
-            owl_v3f32 const node_center = node->center;
-            float const half_size = node->half_size;
-            float const children_half_size = 0.5 * half_size;
+            node->children[i] = fc3d_DataPool_NextData(octree_children_data_pool);
 
-            owl_v3f32 base_xyz[3];
-            owl_v3f32_base_xyz(base_xyz, children_half_size);
-
-            unsigned int k = 0;
-            for(float sign_z = -1.0 ; sign_z <= 1.0 ; sign_z += 2.0)
+            if(node->children[i] != NULL)
             {
-                owl_v3f32 center_z = owl_v3f32_add_scalar_mul(node_center, base_xyz[2], sign_z);
-                for(float sign_y = -1.0 ; sign_y <= 1.0 ; sign_y += 2.0)
+                float const half_size = node->half_size;
+                float const child_half_size = 0.5 * half_size;
+                owl_v3f32 child_center = node->center;
+
+                owl_v3f32 base_xyz[3];
+                owl_v3f32_base_xyz(base_xyz, child_half_size);
+
+                for(unsigned int j = 0 ; j < 3 ; j++)
                 {
-                    owl_v3f32 center_y = owl_v3f32_add_scalar_mul(center_z, base_xyz[1], sign_y);
-                    for(float sign_x = -1.0 ; sign_x <= 1.0 ; sign_x += 2.0)
-                    {
-                        owl_v3f32 center = owl_v3f32_add_scalar_mul(center_y, base_xyz[0], sign_x);
-
-                        fc3d_rendering_octree_node_Set(node->children + k, center, children_half_size);
-
-                        k += 1;
-                    }
+                    child_center = owl_v3f32_add(
+                                                    child_center,
+                                                    owl_v3f32_scalar_mul(
+                                                                            base_xyz[j],
+                                                                            (((i>>j) & 0x1) != 0) ? 1.0 : -1.0
+                                                                         )
+                                                 );
                 }
+
+                fc3d_rendering_octree_node_Set(node->children[i], child_center, child_half_size);
             }
         }
-    }
 
-    return node->children;
+        return node->children[i];
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 //Activates auxiliary storage
@@ -137,7 +142,8 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
         owl_v3f32 rel_child_center = owl_v3f32_sub(obj->v_pos, child_center);
         if(spatial_extension)
         {
-            owl_v3f32 obj_radius_vect = owl_v3f32_broadcast( obj->wolf_obj_interface->Radius(obj->wolf_obj) );
+            float obj_radius = obj->wolf_obj_interface->Radius(obj->wolf_obj);
+            owl_v3f32 obj_radius_vect = owl_v3f32_broadcast(obj_radius);
             float quick_test_result = fmaxf(
                                                 owl_v3f32_norminf( owl_v3f32_add( rel_child_center, obj_radius_vect ) ),
                                                 owl_v3f32_norminf( owl_v3f32_sub( rel_child_center, obj_radius_vect ) )
@@ -147,7 +153,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
             {
                 fit_into_child_node = true;
             }
-            else
+            else if(obj_radius <= 2.0 * child_half_size)
             {
                 //Precise test
                 float advanced_test_result = obj->wolf_obj_interface->InfRadiusWithRot(obj->wolf_obj, rel_child_center, obj->q_rot);
@@ -164,10 +170,10 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
 
         if(fit_into_child_node)
         {
-            fc3d_rendering_octree_node* children = fc3d_rendering_octree_node_ChildrenOn(node, octree_children_data_pool);
-            if(children != NULL)
+            fc3d_rendering_octree_node* child = fc3d_rendering_octree_node_ChildrenOn(node, i_node, octree_children_data_pool);
+            if(child != NULL)
             {
-                return fc3d_rendering_octree_node_AddObject(children + i_node, obj, max_depth - 1, spatial_extension, octree_children_data_pool, octree_auxiliary_data_pool);
+                return fc3d_rendering_octree_node_AddObject(child, obj, max_depth - 1, spatial_extension, octree_children_data_pool, octree_auxiliary_data_pool);
             }
             else
             {
@@ -183,6 +189,82 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
     {
         return fc3d_rendering_octree_node_InsertObject(node, obj, octree_auxiliary_data_pool);
     }
+}
+
+//
+//
+//
+bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree_node* node, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface* surface_ret)
+{
+    bool intersection_exists = false;
+    float t = t_max;
+
+    float ray_origin_coords[4] OWL_ALIGN16;
+    owl_v3f32_store4(ray_origin_coords, ray_origin);
+    float ray_dir_coords[4] OWL_ALIGN16;
+    owl_v3f32_store4(ray_dir_coords, ray_dir);
+
+    float node_center_coords[4] OWL_ALIGN16;
+    owl_v3f32_store4(node_center_coords, node->center);
+
+    bool node_has_intersection_with_ray = false;
+    for(unsigned int j = 0 ; j < 3 && !node_has_intersection_with_ray ; j++)
+    {
+        unsigned int j1 = (j + 1) % 3;
+        unsigned int j2 = (j + 2) % 3;
+
+        for(float sign = -1.0 ; sign <= 1.0 && !node_has_intersection_with_ray ; sign += 2.0)
+        {
+            float t_plan = (node_center_coords[j] + sign * node->half_size - ray_origin_coords[j]) / ray_dir_coords[j];
+            if(t_min <= t_plan && t_plan <= t_max && isfinite(t_plan) != 0)
+            {
+                float x_j1 = ray_origin_coords[j1] + t_plan * ray_dir_coords[j1] - node_center_coords[j1];
+                float x_j2 = ray_origin_coords[j2] + t_plan * ray_dir_coords[j2] - node_center_coords[j2];
+                if(fmaxf(fabsf(x_j1), fabsf(x_j2)) <= node->half_size)
+                {
+                    node_has_intersection_with_ray = true;
+                }
+            }
+        }
+    }
+
+    if(node_has_intersection_with_ray)
+    {
+        for(unsigned int k = 0 ; k < FC3D_OCTREE_NODE_NB_OBJECTS ; k++)
+        {
+            fc3d_rendering_object const* obj = node->objects[k];
+            if(obj != NULL)
+            {
+                intersection_exists = obj->wolf_obj_interface->NearestIntersectionWithRay(obj->wolf_obj, obj->v_pos, obj->q_rot, ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret) || intersection_exists;
+            }
+        }
+
+        if(node->auxiliary_storage_node != NULL)
+        {
+            intersection_exists = fc3d_rendering_octree_node_NearestIntersectionWithRay(node->auxiliary_storage_node, ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret) || intersection_exists;
+        }
+
+        if(node->children != NULL)
+        {
+            for(unsigned int k = 0 ; k < 8 ; k++)
+            {
+                if(node->children[k] != NULL)
+                {
+                    intersection_exists = fc3d_rendering_octree_node_NearestIntersectionWithRay(node->children[k], ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret) || intersection_exists;
+                }
+            }
+        }
+    }
+
+    if(intersection_exists)
+    {
+        if(t_ret != NULL)
+        {
+            *t_ret = t;
+        }
+    }
+
+    return intersection_exists;
 }
 
 //Rasterization
@@ -287,9 +369,12 @@ wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
         //Rasterization of the children
         if(error == WF3D_SUCCESS && node->children != NULL)
         {
-            for(int i = 0 ; i < 8 && error == WF3D_SUCCESS; i++)
+            for(unsigned int k = 0 ; k < 8 && error == WF3D_SUCCESS; k++)
             {
-                error = fc3d_rendering_octree_node_Rasterization(node->children + i, img_out, cam_lightsource_list, nb_lightsources, cam_v_pos, cam_q_rot, cam);
+                if(node->children[k] != NULL)
+                {
+                    error = fc3d_rendering_octree_node_Rasterization(node->children[k], img_out, cam_lightsource_list, nb_lightsources, cam_v_pos, cam_q_rot, cam);
+                }
             }
         }
     }
@@ -399,9 +484,12 @@ wf3d_error fc3d_rendering_octree_node_Rasterization2(fc3d_rendering_octree_node*
         //Rasterization of the children
         if(error == WF3D_SUCCESS && node->children != NULL)
         {
-            for(int i = 0 ; i < 8 && error == WF3D_SUCCESS; i++)
+            for(unsigned int k = 0 ; k < 8 && error == WF3D_SUCCESS; k++)
             {
-                error = fc3d_rendering_octree_node_Rasterization2(node->children + i, img_out, cam_v_pos, cam_q_rot, cam);
+                if(node->children[k] != NULL)
+                {
+                    error = fc3d_rendering_octree_node_Rasterization2(node->children[k], img_out, cam_v_pos, cam_q_rot, cam);
+                }
             }
         }
     }

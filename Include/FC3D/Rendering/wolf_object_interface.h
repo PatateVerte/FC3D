@@ -15,19 +15,22 @@ typedef struct
     //Destroy() parameter
     void (*Destroy)(void*);
 
-    //wf3d_error wf3d_PolygonMesh_Rasterization(wf3d_PolygonMesh const* obj, wf3d_image2d_rectangle* img_out, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+    //bool NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface* surface_ret);
+    bool (*NearestIntersectionWithRay)(void const*, owl_v3f32, owl_q32, owl_v3f32, owl_v3f32, float, float, float*, owl_v3f32*, wf3d_surface*);
+
+    //wf3d_error Rasterization(void const* obj, wf3d_image2d_rectangle* img_out, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
     wf3d_error (*Rasterization)(void const*, wf3d_image2d_rectangle*, wf3d_lightsource const*, unsigned int, owl_v3f32, owl_q32, wf3d_camera3d const*);
 
-    //wf3d_error wf3d_PolygonMesh_Rasterization2(wf3d_PolygonMesh const* obj, wf3d_image3d_image_piece* img_out, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+    //wf3d_error Rasterization2(void const* obj, wf3d_image3d_image_piece* img_out, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
     wf3d_error (*Rasterization2)(void const*, wf3d_image3d_image_piece*, owl_v3f32, owl_q32, wf3d_camera3d const*);
 
     //float Radius(void const* obj)
     float (*Radius)(void const*);
 
-    //float wf3d_PolygonMesh_InfRadius(void const* obj, owl_v3f32 v_pos)
+    //float InfRadius(void const* obj, owl_v3f32 v_pos)
     float (*InfRadius)(void const*, owl_v3f32);
 
-    //float wf3d_PolygonMesh_InfRadiusWithRot(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot)
+    //float InfRadiusWithRot(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot)
     float (*InfRadiusWithRot)(void const*, owl_v3f32, owl_q32);
 
 } fc3d_wolf_object_interface;
