@@ -5,13 +5,12 @@
 //Create an RenderingOctree
 //
 //
-fc3d_RenderingOctree* fc3d_RenderingOctree_Create(owl_v3f32 center, float half_size, int max_depth, size_t children_data_pool_block_len, size_t auxiliary_data_pool_block_len)
+fc3d_RenderingOctree* fc3d_RenderingOctree_Create(float half_size, int max_depth, size_t children_data_pool_block_len, size_t auxiliary_data_pool_block_len)
 {
     fc3d_RenderingOctree* octree = malloc(sizeof(*octree));
 
     if(octree != NULL)
     {
-        octree->center = center;
         octree->half_size = half_size;
 
         octree->max_depth = max_depth;
@@ -55,7 +54,7 @@ fc3d_rendering_octree_node* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* oc
     octree->node_0 = fc3d_DataPool_Rewind(octree->octree_children_data_pool);
     fc3d_DataPool_Rewind(octree->octree_auxiliary_data_pool);
 
-    return fc3d_rendering_octree_node_Set(octree->node_0, octree->center, octree->half_size);
+    return fc3d_rendering_octree_node_Set(octree->node_0, owl_v3f32_zero(), octree->half_size);
 }
 
 //Add an object into the octree
@@ -89,9 +88,9 @@ fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree*
 //Rasterization
 //
 //
-wf3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+wf3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, wf3d_rasterization_env const* env, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot)
 {
-    return fc3d_rendering_octree_node_Rasterization(octree->node_0, img_out, lightsource_list, nb_lightsources, octree_v_pos, octree_q_rot, cam);
+    return fc3d_rendering_octree_node_Rasterization(octree->node_0, img_out, env, octree_v_pos, octree_q_rot);
 }
 
 //Multithread rasterization data structures
@@ -99,11 +98,9 @@ typedef struct
 {
     fc3d_RenderingOctree const* octree;
 
-    wf3d_lightsource const* lightsource_list;
-    unsigned int nb_lightsources;
+    wf3d_rasterization_env const* env;
     owl_v3f32 octree_v_pos;
     owl_q32 octree_q_rot;
-    wf3d_camera3d const* cam;
 
     wf3d_image2d_rectangle* img_out;
 
@@ -181,7 +178,7 @@ static void* wf3d_octree_multithread_rasterization(void* ptr)
 
         if(error == WF3D_SUCCESS && !rasterization_over)
         {
-            error = fc3d_rendering_octree_node_Rasterization(shared_arg->octree->node_0, &img_rect, shared_arg->lightsource_list, shared_arg->nb_lightsources, shared_arg->octree_v_pos, shared_arg->octree_q_rot, shared_arg->cam);
+            error = fc3d_rendering_octree_node_Rasterization(shared_arg->octree->node_0, &img_rect, shared_arg->env, shared_arg->octree_v_pos, shared_arg->octree_q_rot);
         }
     }
 
@@ -193,7 +190,7 @@ static void* wf3d_octree_multithread_rasterization(void* ptr)
 //Rasterization with multithreading
 //
 //
-wf3d_error fc3d_RenderingOctree_MultiThreadRasterization(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, unsigned short nb_threads, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+wf3d_error fc3d_RenderingOctree_MultiThreadRasterization(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, unsigned short nb_threads, wf3d_rasterization_env const* env, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot)
 {
     wf3d_error error = WF3D_SUCCESS;
 
@@ -207,11 +204,9 @@ wf3d_error fc3d_RenderingOctree_MultiThreadRasterization(fc3d_RenderingOctree* o
         if(thread_list != NULL && thread_arg_list != NULL)
         {
             shared_arg.octree = octree;
-            shared_arg.lightsource_list = lightsource_list;
-            shared_arg.nb_lightsources = nb_lightsources;
+            shared_arg.env = env;
             shared_arg.octree_v_pos = octree_v_pos;
             shared_arg.octree_q_rot = octree_q_rot;
-            shared_arg.cam = cam;
             shared_arg.img_out = img_out;
 
             unsigned int nb_div = 2;
@@ -291,12 +286,25 @@ wf3d_error fc3d_RenderingOctree_MultiThreadRasterization(fc3d_RenderingOctree* o
     G
 */
 
-//
-//
-//
-wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_color* final_color, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 cam_ray_dir, owl_v3f32 v_pos, owl_v3f32 normal, wf3d_surface const* surface, int max_nb_reflections, float near_clipping_distance, float far_clipping_distance)
+typedef struct
 {
-    wf3d_lightsource_enlight_surface(lightsource_list, nb_lightsources, final_color, surface, v_pos, normal);
+    owl_v3f32 octree_v_pos;
+    owl_q32 octree_q_rot;
+
+    wf3d_lightsource const* const* lightsource_list;
+    unsigned int nb_lightsources;
+
+    float near_clipping_distance;
+    float far_clipping_distance;
+
+} fc3d_octree_point_color_attr;
+
+//
+//
+//
+wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, fc3d_octree_point_color_attr const* attr, wf3d_color* final_color, owl_v3f32 cam_ray_dir, owl_v3f32 v_pos, owl_v3f32 normal, wf3d_surface const* surface, int max_nb_reflections)
+{
+    wf3d_lightsource_enlight_surface(attr->lightsource_list, attr->nb_lightsources, final_color, surface, v_pos, normal);
 
     if(max_nb_reflections > 0)
     {
@@ -318,14 +326,14 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
             float t;
             owl_v3f32 reflected_point_normal;
             wf3d_surface reflected_point_surface;
-            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, octree_v_pos, octree_q_rot, v_pos, reflection_ray_dir, near_clipping_distance, far_clipping_distance, &t, &reflected_point_normal, &reflected_point_surface))
+            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, reflection_ray_dir, attr->near_clipping_distance, attr->far_clipping_distance, &t, &reflected_point_normal, &reflected_point_surface))
             {
                 owl_v3f32 reflected_point_v_pos = owl_v3f32_add_scalar_mul(v_pos, reflection_ray_dir, t);
                 wf3d_color reflection_color;
                 fc3d_RenderingOctree_PointColor(
-                                                    octree, octree_v_pos, octree_q_rot, &reflection_color, lightsource_list, nb_lightsources,
+                                                    octree, attr, &reflection_color,
                                                     reflection_ray_dir, reflected_point_v_pos, reflected_point_normal, &reflected_point_surface,
-                                                    max_nb_reflections - 1, near_clipping_distance, far_clipping_distance
+                                                    max_nb_reflections - 1
                                                );
                 for(unsigned int k = 0 ; k < 3 ; k++)
                 {
@@ -347,14 +355,14 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
             float t;
             owl_v3f32 refracted_point_normal;
             wf3d_surface refracted_point_surface;
-            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, octree_v_pos, octree_q_rot, v_pos, refraction_ray_dir, near_clipping_distance, far_clipping_distance, &t, &refracted_point_normal, &refracted_point_surface))
+            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, refraction_ray_dir, attr->near_clipping_distance, attr->far_clipping_distance, &t, &refracted_point_normal, &refracted_point_surface))
             {
                 owl_v3f32 refracted_point_v_pos = owl_v3f32_add_scalar_mul(v_pos, refraction_ray_dir, t);
                 wf3d_color refraction_color;
                 fc3d_RenderingOctree_PointColor(
-                                                    octree, octree_v_pos, octree_q_rot, &refraction_color, lightsource_list, nb_lightsources,
+                                                    octree, attr, &refraction_color,
                                                     refraction_ray_dir, refracted_point_v_pos, refracted_point_normal, &refracted_point_surface,
-                                                    max_nb_reflections - 1, near_clipping_distance, far_clipping_distance
+                                                    max_nb_reflections - 1
                                                );
                 for(unsigned int k = 0 ; k < 3 ; k++)
                 {
@@ -371,7 +379,7 @@ typedef struct
 {
     fc3d_RenderingOctree const* octree;
 
-    wf3d_lightsource const* lightsource_list;
+    wf3d_lightsource const* const* lightsource_list;
     unsigned int nb_lightsources;
     owl_v3f32 octree_v_pos;
     owl_q32 octree_q_rot;
@@ -459,6 +467,14 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
             error = fc3d_rendering_octree_node_Rasterization2(shared_arg->octree->node_0, &img_piece, shared_arg->octree_v_pos, shared_arg->octree_q_rot, shared_arg->cam);
             if(error == WF3D_SUCCESS)
             {
+                fc3d_octree_point_color_attr attr;
+                attr.octree_v_pos = shared_arg->octree_v_pos;
+                attr.octree_q_rot = shared_arg->octree_q_rot;
+                attr.lightsource_list = shared_arg->lightsource_list;
+                attr.nb_lightsources = shared_arg->nb_lightsources;
+                attr.near_clipping_distance = shared_arg->cam->near_clipping_distance;
+                attr.far_clipping_distance = shared_arg->cam->far_clipping_distance;
+
                 for(int y = img_piece.y_min ; y < img_piece.y_max ; y++)
                 {
                     int y3d = y - img_piece.y_min;
@@ -474,9 +490,9 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
                             owl_v3f32 obj_normal = wf3d_Image3d_unsafe_Normal(img_piece.img3d, x3d, y3d);
                             wf3d_color pixel_color;
                             fc3d_RenderingOctree_PointColor(
-                                                                shared_arg->octree, shared_arg->octree_v_pos, shared_arg->octree_q_rot, &pixel_color, shared_arg->lightsource_list, shared_arg->nb_lightsources,
+                                                                shared_arg->octree, &attr, &pixel_color,
                                                                 ray_dir, obj_v_pos, obj_normal, wf3d_Image3d_unsafe_Surface(img_piece.img3d, x3d, y3d),
-                                                                shared_arg->cam->max_nb_reflections, shared_arg->cam->near_clipping_distance, shared_arg->cam->far_clipping_distance
+                                                                shared_arg->cam->max_nb_reflections
                                                             );
                             error = wf3d_Image2d_SetPixel(img_out->img2d, x, y, &pixel_color, depth);
                         }
@@ -494,7 +510,7 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
 //Multithread ray tracing
 //img3d_thread_buffer_list must contain nb_threads elements of the same size (width and height)
 //
-wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, wf3d_Image3d** img3d_thread_buffer_list, unsigned short nb_threads, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, wf3d_Image3d** img3d_thread_buffer_list, unsigned short nb_threads, wf3d_lightsource const* const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
 {
     wf3d_error error = WF3D_SUCCESS;
 

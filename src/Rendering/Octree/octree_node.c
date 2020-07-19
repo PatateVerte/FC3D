@@ -283,9 +283,11 @@ bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree
 //Rasterization
 //
 //
-wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_image2d_rectangle* img_out, wf3d_lightsource const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, wf3d_image2d_rectangle* img_out, wf3d_rasterization_env const* env, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot)
 {
     wf3d_error error = WF3D_SUCCESS;
+
+    wf3d_camera3d const* cam = env->cam;
 
     //Is the node inside of the view cone ? (the node is considered to be a sphere)
     bool is_inside_view_cone = true;
@@ -368,14 +370,14 @@ wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
                                                         owl_q32_transform_v3f32(octree_q_rot, obj->v_pos)
                                                      );
 
-                error = obj->wolf_obj_interface->Rasterization(obj->wolf_obj, img_out, lightsource_list, nb_lightsources, full_v_pos, full_q_rot, cam);
+                error = obj->wolf_obj_interface->Rasterization(obj->wolf_obj, img_out, env, full_v_pos, full_q_rot);
             }
         }
 
         //Rasterization of the auxiliary storage node
         if(error == WF3D_SUCCESS && node->auxiliary_storage_node != NULL)
         {
-            error = fc3d_rendering_octree_node_Rasterization(node->auxiliary_storage_node, img_out, lightsource_list, nb_lightsources, octree_v_pos, octree_q_rot, cam);
+            error = fc3d_rendering_octree_node_Rasterization(node->auxiliary_storage_node, img_out, env, octree_v_pos, octree_q_rot);
         }
 
         //Rasterization of the children
@@ -385,7 +387,7 @@ wf3d_error fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* 
             {
                 if(node->children[k] != NULL)
                 {
-                    error = fc3d_rendering_octree_node_Rasterization(node->children[k], img_out, lightsource_list, nb_lightsources, octree_v_pos, octree_q_rot, cam);
+                    error = fc3d_rendering_octree_node_Rasterization(node->children[k], img_out, env, octree_v_pos, octree_q_rot);
                 }
             }
         }
