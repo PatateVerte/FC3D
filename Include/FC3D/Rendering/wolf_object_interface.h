@@ -1,8 +1,8 @@
 #ifndef FC3D_OBJECT_INTERFACE_H_INCLUDED
 #define FC3D_OBJECT_INTERFACE_H_INCLUDED
 
-#include <OWL/q32.h>
-#include <OWL/v3f32.h>
+#include <OWL/Optimized3d/quaternion/q32.h>
+#include <OWL/Optimized3d/vector/v3f32.h>
 
 #include <WF3D/error.h>
 #include <WF3D/Rendering/camera3d.h>

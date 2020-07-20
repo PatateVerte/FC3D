@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 
-#include <OWL/q32.h>
-#include <OWL/v3f32.h>
+#include <OWL/Optimized3d/quaternion/q32.h>
+#include <OWL/Optimized3d/vector/v3f32.h>
 
 #include <FC3D/Rendering/rendering_object.h>
 #include <FC3D/DataStruct/data_pool.h>

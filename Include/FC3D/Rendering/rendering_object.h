@@ -1,8 +1,8 @@
 #ifndef FC3D_RENDERING_OBJECT_H_INCLUDED
 #define FC3D_RENDERING_OBJECT_H_INCLUDED
 
-#include <OWL/q32.h>
-#include <OWL/v3f32.h>
+#include <OWL/Optimized3d/quaternion/q32.h>
+#include <OWL/Optimized3d/vector/v3f32.h>
 
 #include <FC3D/Rendering/wolf_object_interface.h>
 
