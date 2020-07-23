@@ -299,12 +299,12 @@ typedef struct
 
 } fc3d_octree_point_color_attr;
 
-//
+//||ray_dir|| = 1
 //
 //
 wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, fc3d_octree_point_color_attr const* attr, wf3d_color* final_color, owl_v3f32 cam_ray_dir, owl_v3f32 v_pos, owl_v3f32 normal, wf3d_surface const* surface, int max_nb_reflections)
 {
-    wf3d_lightsource_enlight_surface(attr->lightsource_list, attr->nb_lightsources, final_color, surface, v_pos, normal);
+    wf3d_lightsource_enlight_surface(attr->lightsource_list, attr->nb_lightsources, final_color, surface, v_pos, normal, cam_ray_dir);
 
     if(max_nb_reflections > 0)
     {
@@ -350,23 +350,40 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
 
         if(refraction_exists)
         {
-            owl_v3f32 refraction_ray_dir = cam_ray_dir;
+            float n_int_sign = (owl_v3f32_dot(cam_ray_dir, normal) < 0.0) ? -1.0 : 1.0;
+            float rel_refractive_index = (n_int_sign < 0.0) ? surface->rel_refractive_index : 1.0 / surface->rel_refractive_index;
+            owl_v3f32 n_int = owl_v3f32_scalar_mul(normal, n_int_sign);
 
-            float t;
-            owl_v3f32 refracted_point_normal;
-            wf3d_surface refracted_point_surface;
-            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, refraction_ray_dir, attr->near_clipping_distance, attr->far_clipping_distance, &t, &refracted_point_normal, &refracted_point_surface))
+            owl_v3f32 rot_refraction_vec = owl_v3f32_cross(n_int, cam_ray_dir);
+            float sin_inc_angle = owl_v3f32_norm(rot_refraction_vec);
+            float sin_ref_angle = rel_refractive_index * sin_inc_angle;
+
+            if(0.0 <= fabsf(sin_ref_angle) && fabsf(sin_ref_angle) <= 1.0)
             {
-                owl_v3f32 refracted_point_v_pos = owl_v3f32_add_scalar_mul(v_pos, refraction_ray_dir, t);
-                wf3d_color refraction_color;
-                fc3d_RenderingOctree_PointColor(
-                                                    octree, attr, &refraction_color,
-                                                    refraction_ray_dir, refracted_point_v_pos, refracted_point_normal, &refracted_point_surface,
-                                                    max_nb_reflections - 1
-                                               );
-                for(unsigned int k = 0 ; k < 3 ; k++)
+                float inc_angle = asinf(sin_inc_angle);
+                float ref_angle = asinf(sin_ref_angle);
+                owl_q32 q_ref_rot = owl_q32_from_rotation(
+                                                            (sin_inc_angle > 0.0) ? owl_v3f32_scalar_div(rot_refraction_vec, sin_inc_angle) : owl_v3f32_zero(),
+                                                            ref_angle - inc_angle
+                                                          );
+                owl_v3f32 refraction_ray_dir = owl_q32_transform_v3f32(q_ref_rot, cam_ray_dir);
+
+                float t;
+                owl_v3f32 refracted_point_normal;
+                wf3d_surface refracted_point_surface;
+                if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, refraction_ray_dir, attr->near_clipping_distance, attr->far_clipping_distance, &t, &refracted_point_normal, &refracted_point_surface))
                 {
-                    final_color->rgba[k] += surface->refraction_filter[k] * refraction_color.rgba[k];
+                    owl_v3f32 refracted_point_v_pos = owl_v3f32_add_scalar_mul(v_pos, refraction_ray_dir, t);
+                    wf3d_color refraction_color;
+                    fc3d_RenderingOctree_PointColor(
+                                                        octree, attr, &refraction_color,
+                                                        refraction_ray_dir, refracted_point_v_pos, refracted_point_normal, &refracted_point_surface,
+                                                        max_nb_reflections - 1
+                                                   );
+                    for(unsigned int k = 0 ; k < 3 ; k++)
+                    {
+                        final_color->rgba[k] += surface->refraction_filter[k] * refraction_color.rgba[k];
+                    }
                 }
             }
         }
