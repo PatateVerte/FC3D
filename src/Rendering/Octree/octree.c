@@ -69,208 +69,7 @@ fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree*
 
     return fc3d_rendering_octree_node_AddObject(octree->node_0, obj, octree->max_depth, spatial_extension, octree->octree_children_data_pool, octree->octree_auxiliary_data_pool);
 }
-/*
-    R
-    A
-    S
-    T
-    E
-    R
-    I
-    Z
-    A
-    T
-    I
-    O
-    N
-*/
 
-//Rasterization
-//
-//
-wf3d_error fc3d_RenderingOctree_Rasterization(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, wf3d_rasterization_env const* env, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot)
-{
-    return fc3d_rendering_octree_node_Rasterization(octree->node_0, img_out, env, octree_v_pos, octree_q_rot);
-}
-
-//Multithread rasterization data structures
-typedef struct
-{
-    fc3d_RenderingOctree const* octree;
-
-    wf3d_rasterization_env const* env;
-    owl_v3f32 octree_v_pos;
-    owl_q32 octree_q_rot;
-
-    wf3d_image2d_rectangle* img_out;
-
-    int x_block_len;
-    int y_block_len;
-
-    pthread_mutex_t shared_mutex;
-    int next_x;
-    int next_y;
-
-} wf3d_octree_rasterization_thread_shared_arg;
-
-typedef struct
-{
-    wf3d_octree_rasterization_thread_shared_arg* shared_arg;
-    wf3d_error error_ret;
-
-} wf3d_octree_rasterization_thread_arg;
-
-//Multithread rasterization function
-static void* wf3d_octree_multithread_rasterization(void* ptr)
-{
-    wf3d_error error = WF3D_SUCCESS;
-
-    wf3d_octree_rasterization_thread_arg* arg = ptr;
-    wf3d_octree_rasterization_thread_shared_arg* shared_arg = arg->shared_arg;
-    wf3d_image2d_rectangle* img_out = shared_arg->img_out;
-
-    wf3d_image2d_rectangle img_rect;
-    img_rect.img2d = img_out->img2d;
-
-    bool rasterization_over = false;
-
-    while(error == WF3D_SUCCESS && !rasterization_over)
-    {
-        int thread_error = pthread_mutex_lock(&shared_arg->shared_mutex);
-
-        if(thread_error == 0)
-        {
-            if(shared_arg->next_x < img_out->x_max && shared_arg->next_y < img_out->y_max)
-            {
-                img_rect.y_min = shared_arg->next_y;
-                img_rect.x_min = shared_arg->next_x;
-
-                img_rect.y_max = shared_arg->next_y + shared_arg->y_block_len;
-                if(img_rect.y_max > img_out->y_max)
-                {
-                    img_rect.y_max = img_out->y_max;
-                }
-
-                img_rect.x_max = img_rect.x_min + shared_arg->x_block_len;
-
-                if(img_rect.x_max >= img_out->x_max)
-                {
-                    img_rect.x_max = img_out->x_max;
-                    shared_arg->next_x = img_out->x_min;
-                    shared_arg->next_y += shared_arg->y_block_len;
-                }
-                else
-                {
-                    shared_arg->next_x += shared_arg->x_block_len;
-                }
-            }
-            else
-            {
-                rasterization_over = true;
-            }
-        }
-        else
-        {
-            error = WF3D_THREAD_ERROR;
-        }
-
-        pthread_mutex_unlock(&shared_arg->shared_mutex);
-
-        if(error == WF3D_SUCCESS && !rasterization_over)
-        {
-            error = fc3d_rendering_octree_node_Rasterization(shared_arg->octree->node_0, &img_rect, shared_arg->env, shared_arg->octree_v_pos, shared_arg->octree_q_rot);
-        }
-    }
-
-    arg->error_ret = error;
-
-    return NULL;
-}
-
-//Rasterization with multithreading
-//
-//
-wf3d_error fc3d_RenderingOctree_MultiThreadRasterization(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, unsigned short nb_threads, wf3d_rasterization_env const* env, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot)
-{
-    wf3d_error error = WF3D_SUCCESS;
-
-    if(nb_threads > 0)
-    {
-        pthread_t* thread_list = malloc((size_t)nb_threads * sizeof(*thread_list));
-
-        wf3d_octree_rasterization_thread_shared_arg shared_arg;
-        wf3d_octree_rasterization_thread_arg* thread_arg_list = malloc((size_t)nb_threads * sizeof(*thread_arg_list));
-
-        if(thread_list != NULL && thread_arg_list != NULL)
-        {
-            shared_arg.octree = octree;
-            shared_arg.env = env;
-            shared_arg.octree_v_pos = octree_v_pos;
-            shared_arg.octree_q_rot = octree_q_rot;
-            shared_arg.img_out = img_out;
-
-            unsigned int nb_div = 2;
-            while(nb_div * nb_div < 4 * (unsigned int)nb_threads)
-            {
-                nb_div *= 2;
-            }
-
-            shared_arg.x_block_len = (img_out->x_max - img_out->x_min) / nb_div;
-            shared_arg.y_block_len = (img_out->y_max - img_out->y_min) / nb_div;
-
-            shared_arg.shared_mutex = PTHREAD_MUTEX_INITIALIZER;
-            shared_arg.next_x = 0;
-            shared_arg.next_y = 0;
-
-            unsigned short nb_thread_launched = 0;
-            for(unsigned short k = 0 ; k < nb_threads && error == WF3D_SUCCESS ; k++)
-            {
-                thread_arg_list[k].shared_arg = &shared_arg;
-                thread_arg_list[k].error_ret = WF3D_SUCCESS;
-                int thread_error = pthread_create(thread_list + k, NULL, wf3d_octree_multithread_rasterization, thread_arg_list + k);
-
-                if(thread_error == 0)
-                {
-                    nb_thread_launched++;
-                }
-                else
-                {
-                    error = WF3D_THREAD_ERROR;
-                }
-            }
-
-            for(unsigned int k = 0 ; k < nb_thread_launched ; k++)
-            {
-                int thread_error = pthread_join(thread_list[k], NULL);
-                if(thread_error != 0)
-                {
-                    error = WF3D_THREAD_ERROR;
-                }
-            }
-
-            if(error == WF3D_SUCCESS)
-            {
-                for(unsigned short k = 0 ; k < nb_threads && error == WF3D_SUCCESS ; k++)
-                {
-                    error = thread_arg_list[k].error_ret;
-                }
-            }
-        }
-        else
-        {
-            error = WF3D_MEMORY_ERROR;
-        }
-
-        free(thread_list);
-        free(thread_arg_list);
-    }
-    else
-    {
-        error = WF3D_THREAD_ERROR;
-    }
-
-    return error;
-}
 
 /*
     R
@@ -295,7 +94,6 @@ typedef struct
     unsigned int nb_lightsources;
 
     float near_clipping_distance;
-    float far_clipping_distance;
 
 } fc3d_octree_point_color_attr;
 
@@ -326,7 +124,7 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
             float t;
             owl_v3f32 reflected_point_normal;
             wf3d_surface reflected_point_surface;
-            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, reflection_ray_dir, attr->near_clipping_distance, attr->far_clipping_distance, &t, &reflected_point_normal, &reflected_point_surface))
+            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, reflection_ray_dir, attr->near_clipping_distance, INFINITY, &t, &reflected_point_normal, &reflected_point_surface))
             {
                 owl_v3f32 reflected_point_v_pos = owl_v3f32_add_scalar_mul(v_pos, reflection_ray_dir, t);
                 wf3d_color reflection_color;
@@ -335,10 +133,8 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
                                                     reflection_ray_dir, reflected_point_v_pos, reflected_point_normal, &reflected_point_surface,
                                                     max_nb_reflections - 1
                                                );
-                for(unsigned int k = 0 ; k < 3 ; k++)
-                {
-                    final_color->rgba[k] += surface->reflection_filter[k] * reflection_color.rgba[k];
-                }
+
+                wf3d_color_add(final_color, final_color, wf3d_color_filter(&reflection_color, &reflection_color, surface->reflection_filter));
             }
         }
 
@@ -371,7 +167,7 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
                 float t;
                 owl_v3f32 refracted_point_normal;
                 wf3d_surface refracted_point_surface;
-                if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, refraction_ray_dir, attr->near_clipping_distance, attr->far_clipping_distance, &t, &refracted_point_normal, &refracted_point_surface))
+                if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, refraction_ray_dir, attr->near_clipping_distance, INFINITY, &t, &refracted_point_normal, &refracted_point_surface))
                 {
                     owl_v3f32 refracted_point_v_pos = owl_v3f32_add_scalar_mul(v_pos, refraction_ray_dir, t);
                     wf3d_color refraction_color;
@@ -380,10 +176,7 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
                                                         refraction_ray_dir, refracted_point_v_pos, refracted_point_normal, &refracted_point_surface,
                                                         max_nb_reflections - 1
                                                    );
-                    for(unsigned int k = 0 ; k < 3 ; k++)
-                    {
-                        final_color->rgba[k] += surface->refraction_filter[k] * refraction_color.rgba[k];
-                    }
+                    wf3d_color_add(final_color, final_color, wf3d_color_filter(&refraction_color, &refraction_color, surface->refraction_filter));
                 }
             }
         }
@@ -402,7 +195,7 @@ typedef struct
     owl_q32 octree_q_rot;
     wf3d_camera3d const* cam;
 
-    wf3d_image2d_rectangle* img_out;
+    fc3d_image2d_rectangle* img_out;
 
     int x_block_len;
     int y_block_len;
@@ -416,7 +209,7 @@ typedef struct
 typedef struct
 {
     wf3d_octree_ray_tracing_thread_shared_arg* shared_arg;
-    wf3d_Image3d* img3d_buffer;
+    fc3d_Image3d* img3d_buffer;
     wf3d_error error_ret;
 
 } wf3d_octree_ray_tracing_thread_arg;
@@ -428,12 +221,12 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
 
     wf3d_octree_ray_tracing_thread_arg* arg = ptr;
     wf3d_octree_ray_tracing_thread_shared_arg* shared_arg = arg->shared_arg;
-    wf3d_image2d_rectangle* img_out = shared_arg->img_out;
+    fc3d_image2d_rectangle* img_out = shared_arg->img_out;
+    fc3d_Image3d* img3d_buff = arg->img3d_buffer;
 
-    wf3d_image3d_image_piece img_piece;
-    img_piece.img3d = arg->img3d_buffer;
-    img_piece.full_img_width = img_out->img2d->width;
-    img_piece.full_img_height = img_out->img2d->height;
+    wf3d_rasterization_rectangle rect;
+    rect.width = img_out->img2d->width;
+    rect.height = img_out->img2d->height;
 
     bool rasterization_over = false;
 
@@ -445,19 +238,19 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
         {
             if(shared_arg->next_x < img_out->x_max && shared_arg->next_y < img_out->y_max)
             {
-                img_piece.y_min = shared_arg->next_y;
-                img_piece.x_min = shared_arg->next_x;
+                rect.y_min = shared_arg->next_y;
+                rect.x_min = shared_arg->next_x;
 
-                img_piece.y_max = shared_arg->next_y + shared_arg->y_block_len;
-                if(img_piece.y_max > img_out->y_max)
+                rect.y_max = shared_arg->next_y + shared_arg->y_block_len;
+                if(rect.y_max > img_out->y_max)
                 {
-                    img_piece.y_max = img_out->y_max;
+                    rect.y_max = img_out->y_max;
                 }
 
-                img_piece.x_max = shared_arg->next_x + shared_arg->x_block_len;
-                if(img_piece.x_max >= img_out->x_max)
+                rect.x_max = shared_arg->next_x + shared_arg->x_block_len;
+                if(rect.x_max >= img_out->x_max)
                 {
-                    img_piece.x_max = img_out->x_max;
+                    rect.x_max = img_out->x_max;
                     shared_arg->next_x = img_out->x_min;
                     shared_arg->next_y += shared_arg->y_block_len;
                 }
@@ -476,43 +269,45 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
             error = WF3D_THREAD_ERROR;
         }
 
-        pthread_mutex_unlock(&shared_arg->shared_mutex);
+        thread_error |= pthread_mutex_unlock(&shared_arg->shared_mutex);
+        if(thread_error != 0)
+        {
+            error = WF3D_THREAD_ERROR;
+        }
 
         if(error == WF3D_SUCCESS && !rasterization_over)
         {
-            wf3d_Image3d_Clear(img_piece.img3d);
-            error = fc3d_rendering_octree_node_Rasterization2(shared_arg->octree->node_0, &img_piece, shared_arg->octree_v_pos, shared_arg->octree_q_rot, shared_arg->cam);
-            if(error == WF3D_SUCCESS)
-            {
-                fc3d_octree_point_color_attr attr;
-                attr.octree_v_pos = shared_arg->octree_v_pos;
-                attr.octree_q_rot = shared_arg->octree_q_rot;
-                attr.lightsource_list = shared_arg->lightsource_list;
-                attr.nb_lightsources = shared_arg->nb_lightsources;
-                attr.near_clipping_distance = shared_arg->cam->near_clipping_distance;
-                attr.far_clipping_distance = shared_arg->cam->far_clipping_distance;
+            fc3d_Image3d_Clear(img3d_buff);
+            fc3d_rendering_octree_node_Rasterization(shared_arg->octree->node_0, img3d_buff, &rect, shared_arg->octree_v_pos, shared_arg->octree_q_rot, shared_arg->cam);
 
-                for(int y = img_piece.y_min ; y < img_piece.y_max ; y++)
+            fc3d_octree_point_color_attr attr;
+            attr.octree_v_pos = shared_arg->octree_v_pos;
+            attr.octree_q_rot = shared_arg->octree_q_rot;
+            attr.lightsource_list = shared_arg->lightsource_list;
+            attr.nb_lightsources = shared_arg->nb_lightsources;
+            attr.near_clipping_distance = shared_arg->cam->near_clipping_distance;
+
+            for(int y = rect.y_min ; y < rect.y_max ; y++)
+            {
+                int y3d = y - rect.y_min;
+                for(int x = rect.x_min ; x < rect.x_max ; x++)
                 {
-                    int y3d = y - img_piece.y_min;
-                    for(int x = img_piece.x_min ; x < img_piece.x_max ; x++)
+                    int x3d = x - rect.x_min;
+                    float depth = fc3d_Image3d_unsafe_Depth(img3d_buff, x3d, y3d);
+
+                    //Ray tracing for every pixel that has hit something
+                    if(isfinite(depth) != 0)
                     {
-                        int x3d = x - img_piece.x_min;
-                        float depth = wf3d_Image3d_unsafe_Depth(img_piece.img3d, x3d, y3d);
-                        //Ray tracing for every pixel that has hit something
-                        if(isfinite(depth) != 0)
-                        {
-                            owl_v3f32 obj_v_pos = wf3d_Image3d_unsafe_M(img_piece.img3d, x3d, y3d);
-                            owl_v3f32 ray_dir = owl_v3f32_normalize(obj_v_pos);
-                            owl_v3f32 obj_normal = wf3d_Image3d_unsafe_Normal(img_piece.img3d, x3d, y3d);
-                            wf3d_color pixel_color;
-                            fc3d_RenderingOctree_PointColor(
-                                                                shared_arg->octree, &attr, &pixel_color,
-                                                                ray_dir, obj_v_pos, obj_normal, wf3d_Image3d_unsafe_Surface(img_piece.img3d, x3d, y3d),
-                                                                shared_arg->cam->max_nb_reflections
-                                                            );
-                            error = wf3d_Image2d_SetPixel(img_out->img2d, x, y, &pixel_color, depth);
-                        }
+                        owl_v3f32 obj_v_pos = fc3d_Image3d_unsafe_M(img3d_buff, x3d, y3d);
+                        owl_v3f32 ray_dir = owl_v3f32_normalize(obj_v_pos);
+                        owl_v3f32 obj_normal = fc3d_Image3d_unsafe_Normal(img3d_buff, x3d, y3d);
+                        wf3d_color pixel_color;
+                        fc3d_RenderingOctree_PointColor(
+                                                            shared_arg->octree, &attr, &pixel_color,
+                                                            ray_dir, obj_v_pos, obj_normal, fc3d_Image3d_unsafe_Surface(img3d_buff, x3d, y3d),
+                                                            shared_arg->cam->max_nb_reflections
+                                                        );
+                        fc3d_Image2d_unsafe_SetPixel(img_out->img2d, x, y, &pixel_color);
                     }
                 }
             }
@@ -527,7 +322,7 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
 //Multithread ray tracing
 //img3d_thread_buffer_list must contain nb_threads elements of the same size (width and height)
 //
-wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octree, wf3d_image2d_rectangle* img_out, wf3d_Image3d** img3d_thread_buffer_list, unsigned short nb_threads, wf3d_lightsource const* const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octree, fc3d_image2d_rectangle* img_out, fc3d_Image3d** img3d_thread_buffer_list, unsigned short nb_threads, wf3d_lightsource const* const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
 {
     wf3d_error error = WF3D_SUCCESS;
 
@@ -552,8 +347,8 @@ wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octr
             shared_arg.y_block_len = img3d_thread_buffer_list[0]->height;
 
             shared_arg.shared_mutex = PTHREAD_MUTEX_INITIALIZER;
-            shared_arg.next_x = 0;
-            shared_arg.next_y = 0;
+            shared_arg.next_x = img_out->x_min;
+            shared_arg.next_y = img_out->y_min;
 
             unsigned short nb_thread_launched = 0;
             for(unsigned short k = 0 ; k < nb_threads && error == WF3D_SUCCESS ; k++)
@@ -606,4 +401,3 @@ wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octr
 
     return error;
 }
-
