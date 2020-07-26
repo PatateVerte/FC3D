@@ -24,6 +24,12 @@ float fc3d_monosurface_triangle_Radius(void const* obj);
 //
 float fc3d_monosurface_triangle_InfRadiusWithTransform(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot);
 
+//
 extern fc3d_rendering_object_interface const fc3d_monosurface_triangle_rendering_interface;
+
+//Create a cube in a list of monosurface_triangle
+//cube_face_list[12]
+//
+fc3d_monosurface_triangle* fc3d_monosurface_triangle_FillListWithCube(fc3d_monosurface_triangle* cube_face_list, float side, wf3d_surface const* const* surface_list);
 
 #endif // FC3D_MONOSURFACE_TRIANGLE_H_INCLUDED

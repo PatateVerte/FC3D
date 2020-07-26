@@ -38,7 +38,7 @@ static void fc3d_monosurface_triangle_rasterization_callback(wf3d_rasterization_
 {
     fc3d_monosurface_triangle_rasterization_callback_arg const* arg = callback_arg;
 
-    float depth = owl_v3f32_unsafe_get_component(v_intersection, 2);
+    float depth = -owl_v3f32_unsafe_get_component(v_intersection, 2);
     int x3d = x - rect->x_min;
     int y3d = y - rect->y_min;
 
@@ -107,4 +107,59 @@ float fc3d_monosurface_triangle_InfRadiusWithTransform(void const* obj, owl_v3f3
     }
 
     return inf_radius;
+}
+
+//Create a cube in a list of monosurface_triangle
+//cube_face_list[12]
+//
+fc3d_monosurface_triangle* fc3d_monosurface_triangle_FillListWithCube(fc3d_monosurface_triangle* cube_face_list, float side, wf3d_surface const* const* surface_list)
+{
+    owl_v3f32 base_xyz[3];
+    owl_v3f32_base_xyz(base_xyz, 1.0);
+
+    owl_v3f32 adapted_base_xyz[3];
+    owl_v3f32_base_xyz(adapted_base_xyz, 0.5 * side);
+
+    for(unsigned int bk0 = 0 ; bk0 < 3 ; bk0++)
+    {
+        unsigned int bk1 = (bk0 + 1) % 3;
+        unsigned int bk2 = (bk0 + 2) % 3;
+
+        for(float sign_face = -1.0 ; sign_face <= 1.0 ; sign_face += 2.0)
+        {
+            owl_v3f32 face_center = owl_v3f32_scalar_mul(adapted_base_xyz[bk0], sign_face);
+            owl_v3f32 normal = owl_v3f32_scalar_mul(base_xyz[bk0], sign_face);
+
+            owl_v3f32 corner_list[3];
+            corner_list[0] = owl_v3f32_add(
+                                            face_center,
+                                            owl_v3f32_add(adapted_base_xyz[bk1], adapted_base_xyz[bk2])
+                                           );
+            corner_list[1] = owl_v3f32_sub(
+                                            face_center,
+                                            owl_v3f32_add(adapted_base_xyz[bk1], adapted_base_xyz[bk2])
+                                           );
+
+            for(float sign_corner = -1.0 ; sign_corner <= 1.0 ; sign_corner += 2.0)
+            {
+                corner_list[2] = owl_v3f32_add_scalar_mul(
+                                                            face_center,
+                                                            owl_v3f32_sub(adapted_base_xyz[bk1], adapted_base_xyz[bk2]),
+                                                            sign_corner
+                                                          );
+
+                unsigned int face_i = 4 * bk0 + ((int)sign_face + 1) + ((int)sign_corner + 1) / 2;
+
+                cube_face_list[face_i].surface = surface_list[3 * ((1 - (int)sign_face) / 2) + bk0];
+
+                cube_face_list[face_i].triangle3d.normal = normal;
+                for(unsigned int vi = 0 ; vi < 3 ; vi++)
+                {
+                    cube_face_list[face_i].triangle3d.vertex_list[vi] = corner_list[vi];
+                }
+            }
+        }
+    }
+
+    return cube_face_list;
 }
