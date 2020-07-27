@@ -25,7 +25,7 @@ wf3d_error fc3d_PolygonMesh_ChangeAllFaces(fc3d_PolygonMesh* mesh, fc3d_monosurf
 wf3d_error fc3d_PolygonMesh_ChangeOneFace(fc3d_PolygonMesh* mesh, unsigned int i, fc3d_monosurface_triangle const* new_face);
 
 //
-bool fc3d_PolygonMesh_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface* surface_ret);
+bool fc3d_PolygonMesh_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret);
 
 //
 void fc3d_PolygonMesh_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam);

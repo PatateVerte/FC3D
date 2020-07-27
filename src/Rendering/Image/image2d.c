@@ -197,12 +197,12 @@ wf3d_error fc3d_Image2d_FXAA(fc3d_Image2d* img_out, fc3d_Image2d const* img_src)
                     float blendL = fmaxf(0.0, (rangeL / range) - FXAA_SUBPIX_TRIM) * FXAA_SUBPIX_TRIM_SCALE;
                     blendL = fminf(FXAA_SUBPIX_CAP, blendL);
 
-                    wf3d_color_uint8 const* pixel_list[9];
+                    wf3d_color_uint8 pixel_list[9];
                     for(int j = - 1 ; j <= 1 ; j++)
                     {
                         for(int i = - 1 ; i <= 1 ; i++)
                         {
-                            pixel_list[3 * (j + 1) + (i + 1)] = img_src->color + fc3d_Image2d_pixel_index(img_src, x + i, y + j);
+                            pixel_list[3 * (j + 1) + (i + 1)] = img_src->color[fc3d_Image2d_pixel_index(img_src, x + i, y + j)];
                         }
                     }
 
@@ -211,7 +211,7 @@ wf3d_error fc3d_Image2d_FXAA(fc3d_Image2d* img_out, fc3d_Image2d const* img_src)
                     wf3d_color_mix8(&colorL, pixel_list, mix_coeff9, 9);
 
                     float final_mix_coeff[2] = {1.0 - blendL, blendL};
-                    wf3d_color const* final_mix_color[2] = {&colorM, &colorL};
+                    wf3d_color final_mix_color[2] = {colorM, colorL};
                     wf3d_color final_color;
                     wf3d_color_mix(&final_color, final_mix_color, final_mix_coeff, 2);
 

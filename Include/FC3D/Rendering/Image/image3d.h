@@ -9,14 +9,16 @@
 #include <WF3D/error.h>
 #include <WF3D/Rendering/Shapes/rasterization_attr.h>
 #include <WF3D/Rendering/Design/surface.h>
+#include <WF3D/Rendering/Design/color.h>
 
 typedef struct
 {
     int width;
     int height;
 
-    wf3d_surface* surface;
     float* depth_buffer;
+    wf3d_surface const** surface;
+    wf3d_color* diffusion_color;
     owl_v3f32* M;
     owl_v3f32* normal;
 
@@ -47,7 +49,14 @@ static inline float fc3d_Image3d_unsafe_Depth(fc3d_Image3d const* img, int x, in
 static inline wf3d_surface const* fc3d_Image3d_unsafe_Surface(fc3d_Image3d const* img, int x, int y)
 {
     size_t pixel_index = fc3d_Image3d_pixel_index(img, x, y);
-    return img->surface + pixel_index;
+    return img->surface[pixel_index];
+}
+
+//
+static inline wf3d_color const* fc3d_Image3d_unsafe_DiffColor(fc3d_Image3d const* img, int x, int y)
+{
+    size_t pixel_index = fc3d_Image3d_pixel_index(img, x, y);
+    return img->diffusion_color + pixel_index;
 }
 
 //
@@ -64,11 +73,13 @@ static inline owl_v3f32 fc3d_Image3d_unsafe_Normal(fc3d_Image3d const* img, int 
     return img->normal[pixel_index];
 }
 
-static inline void fc3d_Image3d_unsafe_SetPixel(fc3d_Image3d* img, int x, int y, wf3d_surface const* surface, float depth, owl_v3f32 M, owl_v3f32 normal)
+//
+static inline void fc3d_Image3d_unsafe_SetPixel(fc3d_Image3d* img, int x, int y, wf3d_surface const* surface, wf3d_color const* diffusion_color, float depth, owl_v3f32 M, owl_v3f32 normal)
 {
     size_t pixel_index = fc3d_Image3d_pixel_index(img, x, y);
 
-    img->surface[pixel_index] = *surface;
+    img->surface[pixel_index] = surface;
+    img->diffusion_color[pixel_index] = *diffusion_color;
     img->depth_buffer[pixel_index] = depth;
     img->M[pixel_index] = M;
     img->normal[pixel_index] = normal;

@@ -100,9 +100,9 @@ typedef struct
 //||ray_dir|| = 1
 //
 //
-wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, fc3d_octree_point_color_attr const* attr, wf3d_color* final_color, owl_v3f32 cam_ray_dir, owl_v3f32 v_pos, owl_v3f32 normal, wf3d_surface const* surface, int max_nb_reflections)
+wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, fc3d_octree_point_color_attr const* attr, wf3d_color* final_color, owl_v3f32 cam_ray_dir, owl_v3f32 v_pos, owl_v3f32 normal, wf3d_surface const* surface, wf3d_color const* diffusion_color, int max_nb_reflections)
 {
-    wf3d_lightsource_enlight_surface(attr->lightsource_list, attr->nb_lightsources, final_color, surface, v_pos, normal, cam_ray_dir);
+    wf3d_lightsource_enlight_surface(attr->lightsource_list, attr->nb_lightsources, final_color, surface, diffusion_color, v_pos, normal, cam_ray_dir);
 
     if(max_nb_reflections > 0)
     {
@@ -123,14 +123,15 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
 
             float t;
             owl_v3f32 reflected_point_normal;
-            wf3d_surface reflected_point_surface;
-            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, reflection_ray_dir, attr->near_clipping_distance, INFINITY, &t, &reflected_point_normal, &reflected_point_surface))
+            wf3d_surface const* reflected_point_surface;
+            wf3d_color reflected_point_diffusion_color;
+            if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, reflection_ray_dir, attr->near_clipping_distance, INFINITY, &t, &reflected_point_normal, &reflected_point_surface, &reflected_point_diffusion_color))
             {
                 owl_v3f32 reflected_point_v_pos = owl_v3f32_add_scalar_mul(v_pos, reflection_ray_dir, t);
                 wf3d_color reflection_color;
                 fc3d_RenderingOctree_PointColor(
                                                     octree, attr, &reflection_color,
-                                                    reflection_ray_dir, reflected_point_v_pos, reflected_point_normal, &reflected_point_surface,
+                                                    reflection_ray_dir, reflected_point_v_pos, reflected_point_normal, reflected_point_surface, &reflected_point_diffusion_color,
                                                     max_nb_reflections - 1
                                                );
 
@@ -166,14 +167,15 @@ wf3d_color* fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, 
 
                 float t;
                 owl_v3f32 refracted_point_normal;
-                wf3d_surface refracted_point_surface;
-                if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, refraction_ray_dir, attr->near_clipping_distance, INFINITY, &t, &refracted_point_normal, &refracted_point_surface))
+                wf3d_surface const* refracted_point_surface;
+                wf3d_color refracted_point_diffusion_color;
+                if(fc3d_rendering_octree_node_NearestIntersectionWithRay(octree->node_0, attr->octree_v_pos, attr->octree_q_rot, v_pos, refraction_ray_dir, attr->near_clipping_distance, INFINITY, &t, &refracted_point_normal, &refracted_point_surface, &refracted_point_diffusion_color))
                 {
                     owl_v3f32 refracted_point_v_pos = owl_v3f32_add_scalar_mul(v_pos, refraction_ray_dir, t);
                     wf3d_color refraction_color;
                     fc3d_RenderingOctree_PointColor(
                                                         octree, attr, &refraction_color,
-                                                        refraction_ray_dir, refracted_point_v_pos, refracted_point_normal, &refracted_point_surface,
+                                                        refraction_ray_dir, refracted_point_v_pos, refracted_point_normal, refracted_point_surface, &refracted_point_diffusion_color,
                                                         max_nb_reflections - 1
                                                    );
                     wf3d_color_add(final_color, final_color, wf3d_color_filter(&refraction_color, &refraction_color, surface->refraction_filter));
@@ -304,7 +306,7 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
                         wf3d_color pixel_color;
                         fc3d_RenderingOctree_PointColor(
                                                             shared_arg->octree, &attr, &pixel_color,
-                                                            ray_dir, obj_v_pos, obj_normal, fc3d_Image3d_unsafe_Surface(img3d_buff, x3d, y3d),
+                                                            ray_dir, obj_v_pos, obj_normal, fc3d_Image3d_unsafe_Surface(img3d_buff, x3d, y3d), fc3d_Image3d_unsafe_DiffColor(img3d_buff, x3d, y3d),
                                                             shared_arg->cam->max_nb_reflections
                                                         );
                         fc3d_Image2d_unsafe_SetPixel(img_out->img2d, x, y, &pixel_color);

@@ -13,15 +13,23 @@ fc3d_rendering_object_interface const fc3d_monosurface_triangle_rendering_interf
 //
 //
 //
-bool fc3d_monosurface_triangle_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface* surface_ret)
+bool fc3d_monosurface_triangle_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
 {
     fc3d_monosurface_triangle const* mono_triangle = obj;
 
     bool intersection_exists = wf3d_triangle3d_NearestIntersectionWithRay(&mono_triangle->triangle3d, v_pos, q_rot, ray_origin, ray_dir, t_min, t_max, t_ret, normal_ret);
 
-    if(intersection_exists && surface_ret != NULL)
+    if(intersection_exists)
     {
-        *surface_ret = *mono_triangle->surface;
+        if(surface_ret != NULL)
+        {
+            *surface_ret = mono_triangle->surface;
+        }
+
+        if(diffusion_color_ret != NULL)
+        {
+            *diffusion_color_ret = mono_triangle->diffusion_color;
+        }
     }
 
     return intersection_exists;
@@ -29,7 +37,7 @@ bool fc3d_monosurface_triangle_NearestIntersectionWithRay(void const* obj, owl_v
 
 typedef struct
 {
-    wf3d_surface const* surface;
+    fc3d_monosurface_triangle const* mono_triangle;
     fc3d_Image3d* img3d;
 
 } fc3d_monosurface_triangle_rasterization_callback_arg;
@@ -37,6 +45,7 @@ typedef struct
 static void fc3d_monosurface_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
 {
     fc3d_monosurface_triangle_rasterization_callback_arg const* arg = callback_arg;
+    fc3d_monosurface_triangle const* mono_triangle = arg->mono_triangle;
 
     float depth = -owl_v3f32_unsafe_get_component(v_intersection, 2);
     int x3d = x - rect->x_min;
@@ -44,7 +53,7 @@ static void fc3d_monosurface_triangle_rasterization_callback(wf3d_rasterization_
 
     if(depth < fc3d_Image3d_unsafe_Depth(arg->img3d, x3d, y3d))
     {
-        fc3d_Image3d_unsafe_SetPixel(arg->img3d, x3d, y3d, arg->surface, depth, v_intersection, normal);
+        fc3d_Image3d_unsafe_SetPixel(arg->img3d, x3d, y3d, mono_triangle->surface, &mono_triangle->diffusion_color, depth, v_intersection, normal);
     }
 }
 
@@ -57,7 +66,7 @@ void fc3d_monosurface_triangle_Rasterization(void const* obj, fc3d_Image3d* img3
 
     fc3d_monosurface_triangle_rasterization_callback_arg callback_arg;
     callback_arg.img3d = img3d;
-    callback_arg.surface = mono_triangle->surface;
+    callback_arg.mono_triangle = mono_triangle;
 
     wf3d_rasterization_callback callback;
     callback.callback_arg = &callback_arg;
@@ -112,7 +121,7 @@ float fc3d_monosurface_triangle_InfRadiusWithTransform(void const* obj, owl_v3f3
 //Create a cube in a list of monosurface_triangle
 //cube_face_list[12]
 //
-fc3d_monosurface_triangle* fc3d_monosurface_triangle_FillListWithCube(fc3d_monosurface_triangle* cube_face_list, float side, wf3d_surface const* const* surface_list)
+fc3d_monosurface_triangle* fc3d_monosurface_triangle_FillListWithCube(fc3d_monosurface_triangle* cube_face_list, float side, wf3d_surface const* const* surface_list, wf3d_color const* diffusion_color_list)
 {
     owl_v3f32 base_xyz[3];
     owl_v3f32_base_xyz(base_xyz, 1.0);
@@ -151,6 +160,7 @@ fc3d_monosurface_triangle* fc3d_monosurface_triangle_FillListWithCube(fc3d_monos
                 unsigned int face_i = 4 * bk0 + ((int)sign_face + 1) + ((int)sign_corner + 1) / 2;
 
                 cube_face_list[face_i].surface = surface_list[3 * ((1 - (int)sign_face) / 2) + bk0];
+                cube_face_list[face_i].diffusion_color = diffusion_color_list[3 * ((1 - (int)sign_face) / 2) + bk0];
 
                 cube_face_list[face_i].triangle3d.normal = normal;
                 for(unsigned int vi = 0 ; vi < 3 ; vi++)

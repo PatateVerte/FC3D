@@ -194,7 +194,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
 //
 //
 //
-bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree_node* node, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface* surface_ret)
+bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree_node* node, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
 {
     bool intersection_exists = false;
     float t = t_max;
@@ -248,13 +248,13 @@ bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree
                                                         octree_v_pos,
                                                         owl_q32_transform_v3f32(octree_q_rot, rendering_obj->v_pos)
                                                      );
-                intersection_exists = rendering_obj->rendering_obj_interface->NearestIntersectionWithRay(rendering_obj->obj, full_v_pos, full_q_rot, ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret) || intersection_exists;
+                intersection_exists = rendering_obj->rendering_obj_interface->NearestIntersectionWithRay(rendering_obj->obj, full_v_pos, full_q_rot, ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret, diffusion_color_ret) || intersection_exists;
             }
         }
 
         if(node->auxiliary_storage_node != NULL)
         {
-            intersection_exists = fc3d_rendering_octree_node_NearestIntersectionWithRay(node->auxiliary_storage_node, octree_v_pos, octree_q_rot, ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret) || intersection_exists;
+            intersection_exists = fc3d_rendering_octree_node_NearestIntersectionWithRay(node->auxiliary_storage_node, octree_v_pos, octree_q_rot, ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret, diffusion_color_ret) || intersection_exists;
         }
 
         if(node->children != NULL)
@@ -263,7 +263,7 @@ bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree
             {
                 if(node->children[k] != NULL)
                 {
-                    intersection_exists = fc3d_rendering_octree_node_NearestIntersectionWithRay(node->children[k], octree_v_pos, octree_q_rot, ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret) || intersection_exists;
+                    intersection_exists = fc3d_rendering_octree_node_NearestIntersectionWithRay(node->children[k], octree_v_pos, octree_q_rot, ray_origin, ray_dir, t_min, t, &t, normal_ret, surface_ret, diffusion_color_ret) || intersection_exists;
                 }
             }
         }
