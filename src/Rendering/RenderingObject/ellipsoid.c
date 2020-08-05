@@ -45,15 +45,15 @@ fc3d_Ellipsoid* fc3d_Ellipsoid_UpdateAxis(fc3d_Ellipsoid* ellipsoid, float rx, f
     ellipsoid->r[1] = ry;
     ellipsoid->r[2] = rz;
 
-    owl_q32 q_eigenbasis = owl_q32_from_real(1.0);
+    owl_q32 q_eigenbasis = owl_q32_from_real(1.0f);
     owl_v3f32 a = owl_v3f32_zero();
-    owl_v3f32 alpha = owl_v3f32_set(1.0 / (rx*rx), 1.0 / (ry*ry), 1.0 / (rz*rz));
+    owl_v3f32 alpha = owl_v3f32_set(1.0f / (rx*rx), 1.0f / (ry*ry), 1.0f / (rz*rz));
 
-    float const delta = 1.0 - (1.0 / ((float)(1<<7)));
+    float const delta = 1.0f - (1.0f / ((float)(1<<7)));
     owl_v3f32 norminf_filter = owl_v3f32_set(delta / rx, delta / ry, delta / rz);
     owl_v3f32 norm2_filter = owl_v3f32_set(delta / rx, delta / ry, delta / rz);
 
-    wf3d_quadratic_curve_set(&ellipsoid->curve, q_eigenbasis, norminf_filter, norm2_filter, -1.0, a, alpha);
+    wf3d_quadratic_curve_set(&ellipsoid->curve, q_eigenbasis, norminf_filter, norm2_filter, -1.0f, a, alpha);
 
     return ellipsoid;
 }
@@ -77,8 +77,8 @@ fc3d_Ellipsoid* fc3d_Ellipsoid_UpdateOneAxis(fc3d_Ellipsoid* ellipsoid, unsigned
 //
 fc3d_Ellipsoid* fc3d_Ellipsoid_ReverseNormal(fc3d_Ellipsoid* ellipsoid)
 {
-    ellipsoid->curve.alpha = owl_v3f32_scalar_mul(ellipsoid->curve.alpha, -1.0);
-    ellipsoid->curve.c *= -1.0;
+    ellipsoid->curve.alpha = owl_v3f32_scalar_mul(ellipsoid->curve.alpha, -1.0f);
+    ellipsoid->curve.c *= -1.0f;
 
     return ellipsoid;
 }
@@ -118,7 +118,7 @@ typedef struct
 
 } fc3d_Ellipsoid_rasterization_callback_arg;
 
-static void fc3d_Ellipsoid_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
+static void OWL_VECTORCALL fc3d_Ellipsoid_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
 {
     fc3d_Ellipsoid_rasterization_callback_arg const* arg = callback_arg;
     fc3d_Ellipsoid const* ellipsoid = arg->ellipsoid;
@@ -129,7 +129,7 @@ static void fc3d_Ellipsoid_rasterization_callback(wf3d_rasterization_rectangle c
 
     if(depth < fc3d_Image3d_unsafe_Depth(arg->img3d, x3d, y3d))
     {
-        fc3d_Image3d_unsafe_SetPixel(arg->img3d, x3d, y3d, ellipsoid->surface, &ellipsoid->diffusion_color, depth, v_intersection, normal);
+        fc3d_Image3d_unsafe_SetPixel(arg->img3d, x3d, y3d, ellipsoid->surface, &ellipsoid->diffusion_color, depth, normal);
     }
 }
 
@@ -175,14 +175,14 @@ float fc3d_Ellipsoid_InfRadiusWithTransform(void const* obj, owl_v3f32 v_pos, ow
         base_xyz[j] = owl_q32_transform_v3f32(q_rot, base_xyz[j]);
     }
 
-    float inf_radius = 0.0;
-    for(float sign_z = -1.0 ; sign_z <= 1.0 ; sign_z += 2.0)
+    float inf_radius = 0.0f;
+    for(float sign_z = -1.0f ; sign_z <= 1.0f ; sign_z += 2.0f)
     {
         owl_v3f32 center_z = owl_v3f32_add_scalar_mul(v_pos, base_xyz[2], sign_z);
-        for(float sign_y = -1.0 ; sign_y <= 1.0 ; sign_y += 2.0)
+        for(float sign_y = -1.0f ; sign_y <= 1.0f ; sign_y += 2.0f)
         {
             owl_v3f32 center_y = owl_v3f32_add_scalar_mul(center_z, base_xyz[1], sign_y);
-            for(float sign_x = -1.0 ; sign_x <= 1.0 ; sign_x += 2.0)
+            for(float sign_x = -1.0f ; sign_x <= 1.0f ; sign_x += 2.0f)
             {
                 owl_v3f32 vertex = owl_v3f32_add_scalar_mul(center_y, base_xyz[0], sign_x);
                 inf_radius = fmaxf(inf_radius, owl_v3f32_norminf(vertex));

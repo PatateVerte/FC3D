@@ -64,7 +64,7 @@ bool fc3d_tricolor_triangle_NearestIntersectionWithRay(void const* obj, owl_v3f3
                 barycentric_coords[vi] = det[vi] / det_sum;
             }
 
-            wf3d_color_mix(diffusion_color_ret, tri_triangle->vertex_color, barycentric_coords, 3);
+            *diffusion_color_ret = wf3d_color_mix(tri_triangle->vertex_color, barycentric_coords, 3);
         }
     }
 
@@ -80,7 +80,7 @@ typedef struct
 
 } fc3d_tricolor_triangle_rasterization_callback_arg;
 
-static void fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
+static void OWL_VECTORCALL fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
 {
     fc3d_tricolor_triangle_rasterization_callback_arg const* arg = callback_arg;
     fc3d_tricolor_triangle const* tri_triangle = arg->tri_triangle;
@@ -91,7 +91,6 @@ static void fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rec
 
     if(depth < fc3d_Image3d_unsafe_Depth(arg->img3d, x3d, y3d))
     {
-        wf3d_color diffusion_color;
         float det[3];
         float det_sum = 0.0;
         for(unsigned int vi0 = 0 ; vi0 < 3 ; vi0++)
@@ -106,9 +105,9 @@ static void fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rec
             barycentric_coords[vi] = det[vi] / det_sum;
         }
 
-        wf3d_color_mix(&diffusion_color, tri_triangle->vertex_color, barycentric_coords, 3);
+        wf3d_color diffusion_color = wf3d_color_mix(tri_triangle->vertex_color, barycentric_coords, 3);
 
-        fc3d_Image3d_unsafe_SetPixel(arg->img3d, x3d, y3d, tri_triangle->surface, &diffusion_color, depth, v_intersection, normal);
+        fc3d_Image3d_unsafe_SetPixel(arg->img3d, x3d, y3d, tri_triangle->surface, &diffusion_color, depth, normal);
     }
 }
 

@@ -23,10 +23,9 @@ fc3d_Image3d* fc3d_Image3d_Create(int width, int height)
         img->depth_buffer = malloc(nb_pixels * sizeof(*img->depth_buffer));
         img->diffusion_color = malloc(nb_pixels * sizeof(*img->diffusion_color));
         img->surface = malloc(nb_pixels * sizeof(*img->surface));
-        img->M = _aligned_malloc(nb_pixels * sizeof(*img->M), 16);
         img->normal = _aligned_malloc(nb_pixels * sizeof(*img->normal), 16);
 
-        if(nb_pixels > 0 && (img->depth_buffer == NULL || img->surface == NULL || img->diffusion_color == NULL || img->M == NULL || img->normal == NULL))
+        if(nb_pixels > 0 && (img->depth_buffer == NULL || img->surface == NULL || img->diffusion_color == NULL || img->normal == NULL))
         {
             fc3d_Image3d_Destroy(img);
             img = NULL;
@@ -50,7 +49,6 @@ void fc3d_Image3d_Destroy(fc3d_Image3d* img)
         free(img->depth_buffer);
         free(img->surface);
         free(img->diffusion_color);
-        _aligned_free(img->M);
         _aligned_free(img->normal);
 
         free(img);

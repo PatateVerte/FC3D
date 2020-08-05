@@ -42,7 +42,7 @@ typedef struct
 
 } fc3d_monosurface_triangle_rasterization_callback_arg;
 
-static void fc3d_monosurface_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
+static void OWL_VECTORCALL fc3d_monosurface_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
 {
     fc3d_monosurface_triangle_rasterization_callback_arg const* arg = callback_arg;
     fc3d_monosurface_triangle const* mono_triangle = arg->mono_triangle;
@@ -53,7 +53,7 @@ static void fc3d_monosurface_triangle_rasterization_callback(wf3d_rasterization_
 
     if(depth < fc3d_Image3d_unsafe_Depth(arg->img3d, x3d, y3d))
     {
-        fc3d_Image3d_unsafe_SetPixel(arg->img3d, x3d, y3d, mono_triangle->surface, &mono_triangle->diffusion_color, depth, v_intersection, normal);
+        fc3d_Image3d_unsafe_SetPixel(arg->img3d, x3d, y3d, mono_triangle->surface, &mono_triangle->diffusion_color, depth, normal);
     }
 }
 
@@ -124,17 +124,17 @@ float fc3d_monosurface_triangle_InfRadiusWithTransform(void const* obj, owl_v3f3
 fc3d_monosurface_triangle* fc3d_monosurface_triangle_FillListWithCube(fc3d_monosurface_triangle* cube_face_list, float side, wf3d_surface const* const* surface_list, wf3d_color const* diffusion_color_list)
 {
     owl_v3f32 base_xyz[3];
-    owl_v3f32_base_xyz(base_xyz, 1.0);
+    owl_v3f32_base_xyz(base_xyz, 1.0f);
 
     owl_v3f32 adapted_base_xyz[3];
-    owl_v3f32_base_xyz(adapted_base_xyz, 0.5 * side);
+    owl_v3f32_base_xyz(adapted_base_xyz, 0.5f * side);
 
-    for(unsigned int bk0 = 0 ; bk0 < 3 ; bk0++)
+    for(int bk0 = 0 ; bk0 < 3 ; bk0++)
     {
-        unsigned int bk1 = (bk0 + 1) % 3;
-        unsigned int bk2 = (bk0 + 2) % 3;
+        int bk1 = (bk0 + 1) % 3;
+        int bk2 = (bk0 + 2) % 3;
 
-        for(float sign_face = -1.0 ; sign_face <= 1.0 ; sign_face += 2.0)
+        for(float sign_face = -1.0f ; sign_face <= 1.0f ; sign_face += 2.0f)
         {
             owl_v3f32 face_center = owl_v3f32_scalar_mul(adapted_base_xyz[bk0], sign_face);
             owl_v3f32 normal = owl_v3f32_scalar_mul(base_xyz[bk0], sign_face);
@@ -149,7 +149,7 @@ fc3d_monosurface_triangle* fc3d_monosurface_triangle_FillListWithCube(fc3d_monos
                                             owl_v3f32_add(adapted_base_xyz[bk1], adapted_base_xyz[bk2])
                                            );
 
-            for(float sign_corner = -1.0 ; sign_corner <= 1.0 ; sign_corner += 2.0)
+            for(float sign_corner = -1.0f ; sign_corner <= 1.0f ; sign_corner += 2.0f)
             {
                 corner_list[2] = owl_v3f32_add_scalar_mul(
                                                             face_center,
@@ -157,7 +157,7 @@ fc3d_monosurface_triangle* fc3d_monosurface_triangle_FillListWithCube(fc3d_monos
                                                             sign_corner
                                                           );
 
-                unsigned int face_i = 4 * bk0 + ((int)sign_face + 1) + ((int)sign_corner + 1) / 2;
+                unsigned int face_i = (unsigned int)(4 * bk0 + ((int)sign_face + 1) + ((int)sign_corner + 1) / 2);
 
                 cube_face_list[face_i].surface = surface_list[3 * ((1 - (int)sign_face) / 2) + bk0];
                 cube_face_list[face_i].diffusion_color = diffusion_color_list[3 * ((1 - (int)sign_face) / 2) + bk0];
