@@ -8,6 +8,7 @@ fc3d_rendering_object_interface const fc3d_tricolor_triangle_rendering_interface
 (fc3d_rendering_object_interface)   {
                                         .NearestIntersectionWithRay = &fc3d_tricolor_triangle_NearestIntersectionWithRay,
                                         .Rasterization = &fc3d_tricolor_triangle_Rasterization,
+                                        .DepthRasterization = &fc3d_tricolor_triangle_DepthRasterization,
                                         .Radius = &fc3d_tricolor_triangle_Radius,
                                         .InfRadiusWithTransform = &fc3d_tricolor_triangle_InfRadiusWithTransform
                                     };
@@ -71,16 +72,10 @@ bool fc3d_tricolor_triangle_NearestIntersectionWithRay(void const* obj, owl_v3f3
     return intersection_exists;
 }
 
-typedef struct
-{
-    fc3d_tricolor_triangle const* tri_triangle;
-    owl_v3f32 opp_side_cross_normal[3];
-    owl_v3f32 transformed_next_vertex[3];
-    fc3d_Image3d* img3d;
-
-} fc3d_tricolor_triangle_rasterization_callback_arg;
-
-static void OWL_VECTORCALL fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
+//
+//
+//
+void OWL_VECTORCALL fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
 {
     fc3d_tricolor_triangle_rasterization_callback_arg const* arg = callback_arg;
     fc3d_tricolor_triangle const* tri_triangle = arg->tri_triangle;
@@ -139,6 +134,18 @@ void fc3d_tricolor_triangle_Rasterization(void const* obj, fc3d_Image3d* img3d, 
     wf3d_rasterization_callback callback;
     callback.callback_arg = &callback_arg;
     callback.callback_fct = &fc3d_tricolor_triangle_rasterization_callback;
+
+    wf3d_triangle3d_Rasterization(&tri_triangle->triangle3d, &callback, rect, v_pos, q_rot, cam);
+}
+
+//
+void fc3d_tricolor_triangle_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+{
+    fc3d_tricolor_triangle const* tri_triangle = obj;
+
+    wf3d_rasterization_callback callback;
+    callback.callback_arg = depth_img;
+    callback.callback_fct = &fc3d_DepthImage_rasterization_callback;
 
     wf3d_triangle3d_Rasterization(&tri_triangle->triangle3d, &callback, rect, v_pos, q_rot, cam);
 }

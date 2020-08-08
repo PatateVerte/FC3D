@@ -194,7 +194,78 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
 //
 //
 //
-bool OWL_VECTORCALL fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree_node* node, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
+bool fc3d_rendering_octree_node_IsWithViewCone(fc3d_rendering_octree_node const* node, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+{
+    //Is the node inside of the view cone ? (the node is considered to be a sphere)
+    bool is_inside_view_cone = true;
+    owl_v3f32 node_pos = owl_v3f32_add(octree_v_pos, owl_q32_transform_v3f32(octree_q_rot, node->center));
+    if(owl_v3f32_dot(node_pos, node_pos) > 3.0f * node->half_size * node->half_size)
+    {
+        float zf = owl_v3f32_unsafe_get_component(node_pos, 2);
+        float abs_xf = fabsf(owl_v3f32_unsafe_get_component(node_pos, 0) / zf);
+        float abs_yf = fabsf(owl_v3f32_unsafe_get_component(node_pos, 1) / zf);
+
+        if(zf >= 0.0f || (abs_xf > cam->tan_h_half_opening_angle || abs_yf > cam->tan_v_half_opening_angle))
+        {
+            float width_f = (float)rect->width;
+            float x_minus = (((float)rect->x_min) - 0.5f * width_f) * cam->tan_h_half_opening_angle / width_f;
+            float x_plus = (((float)rect->x_max) - 0.5f * width_f) * cam->tan_h_half_opening_angle / width_f;
+            float height_f = (float)rect->height;
+            float y_minus = (((float)rect->y_min) - 0.5f * height_f) * cam->tan_v_half_opening_angle / height_f;
+            float y_plus = (((float)rect->y_max) - 0.5f * height_f) * cam->tan_v_half_opening_angle / height_f;
+
+            owl_v3f32 edges_dir_vect[4] =
+            {
+                owl_v3f32_set(x_minus, y_minus, -1.0f),
+                owl_v3f32_set(x_plus, y_minus, -1.0f),
+                owl_v3f32_set(x_plus, y_plus, -1.0f),
+                owl_v3f32_set(x_minus, y_plus, -1.0f)
+            };
+
+            float square_edge_distance = INFINITY;
+            float face_distance_list[4];
+            for(unsigned int i = 0 ; i < 4 ; i++)
+            {
+                float lambda_proj = fmaxf(0.0f, owl_v3f32_dot(node_pos, edges_dir_vect[i])) / owl_v3f32_dot(edges_dir_vect[i], edges_dir_vect[i]);
+                owl_v3f32 edge_proj = owl_v3f32_scalar_mul(edges_dir_vect[i], lambda_proj);
+                owl_v3f32 edge_diff = owl_v3f32_sub(node_pos, edge_proj);
+                square_edge_distance = fminf(
+                                                square_edge_distance,
+                                                owl_v3f32_dot(edge_diff, edge_diff)
+                                             );
+
+                unsigned int i_next = (i + 1) % 4;
+                owl_v3f32 n = owl_v3f32_normalize(owl_v3f32_cross(edges_dir_vect[i], edges_dir_vect[i_next]));
+                face_distance_list[i] = owl_v3f32_dot(n, node_pos);
+            }
+
+            float face_distance = INFINITY;
+            for(unsigned int i = 0 ; i < 4 ; i++)
+            {
+                unsigned int i_next1 = (i + 1) % 4;
+                unsigned int i_next2 = (i + 3) % 4;
+                unsigned int i_opp = (i + 2) % 4;
+                if(face_distance_list[i_opp] < 0.0f && face_distance_list[i_next1] < 0.0f && face_distance_list[i_next2] < 0.0f)
+                {
+                    face_distance = fminf(face_distance, face_distance_list[i]);
+                }
+            }
+
+            float square_distance = fminf(face_distance * face_distance, square_edge_distance);
+            if(square_distance > 3 * node->half_size * node->half_size)
+            {
+                is_inside_view_cone = false;
+            }
+        }
+    }
+
+    return is_inside_view_cone;
+}
+
+//
+//
+//
+bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree_node const* node, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
 {
     bool intersection_exists = false;
     float t = t_max;
@@ -280,72 +351,9 @@ bool OWL_VECTORCALL fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_r
 //Rasterization
 //
 //
-void OWL_VECTORCALL fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node* node, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+void fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node const* node, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
 {
-    //Is the node inside of the view cone ? (the node is considered to be a sphere)
-    bool is_inside_view_cone = true;
-    owl_v3f32 node_pos = owl_v3f32_add(octree_v_pos, owl_q32_transform_v3f32(octree_q_rot, node->center));
-    if(owl_v3f32_dot(node_pos, node_pos) > 3.0f * node->half_size * node->half_size)
-    {
-        float zf = owl_v3f32_unsafe_get_component(node_pos, 2);
-        float abs_xf = fabsf(owl_v3f32_unsafe_get_component(node_pos, 0) / zf);
-        float abs_yf = fabsf(owl_v3f32_unsafe_get_component(node_pos, 1) / zf);
-
-        if(zf >= 0.0f || (abs_xf > cam->tan_h_half_opening_angle || abs_yf > cam->tan_v_half_opening_angle))
-        {
-            float width_f = (float)rect->width;
-            float x_minus = (((float)rect->x_min) - 0.5f * width_f) * cam->tan_h_half_opening_angle / width_f;
-            float x_plus = (((float)rect->x_max) - 0.5f * width_f) * cam->tan_h_half_opening_angle / width_f;
-            float height_f = (float)rect->height;
-            float y_minus = (((float)rect->y_min) - 0.5f * height_f) * cam->tan_v_half_opening_angle / height_f;
-            float y_plus = (((float)rect->y_max) - 0.5f * height_f) * cam->tan_v_half_opening_angle / height_f;
-
-            owl_v3f32 edges_dir_vect[4] =
-            {
-                owl_v3f32_set(x_minus, y_minus, -1.0f),
-                owl_v3f32_set(x_plus, y_minus, -1.0f),
-                owl_v3f32_set(x_plus, y_plus, -1.0f),
-                owl_v3f32_set(x_minus, y_plus, -1.0f)
-            };
-
-            float square_edge_distance = INFINITY;
-            float face_distance_list[4];
-            for(unsigned int i = 0 ; i < 4 ; i++)
-            {
-                float lambda_proj = fmaxf(0.0f, owl_v3f32_dot(node_pos, edges_dir_vect[i])) / owl_v3f32_dot(edges_dir_vect[i], edges_dir_vect[i]);
-                owl_v3f32 edge_proj = owl_v3f32_scalar_mul(edges_dir_vect[i], lambda_proj);
-                owl_v3f32 edge_diff = owl_v3f32_sub(node_pos, edge_proj);
-                square_edge_distance = fminf(
-                                                square_edge_distance,
-                                                owl_v3f32_dot(edge_diff, edge_diff)
-                                             );
-
-                unsigned int i_next = (i + 1) % 4;
-                owl_v3f32 n = owl_v3f32_normalize(owl_v3f32_cross(edges_dir_vect[i], edges_dir_vect[i_next]));
-                face_distance_list[i] = owl_v3f32_dot(n, node_pos);
-            }
-
-            float face_distance = INFINITY;
-            for(unsigned int i = 0 ; i < 4 ; i++)
-            {
-                unsigned int i_next1 = (i + 1) % 4;
-                unsigned int i_next2 = (i + 3) % 4;
-                unsigned int i_opp = (i + 2) % 4;
-                if(face_distance_list[i_opp] < 0.0f && face_distance_list[i_next1] < 0.0f && face_distance_list[i_next2] < 0.0f)
-                {
-                    face_distance = fminf(face_distance, face_distance_list[i]);
-                }
-            }
-
-            float square_distance = fminf(face_distance * face_distance, square_edge_distance);
-            if(square_distance > 3 * node->half_size * node->half_size)
-            {
-                is_inside_view_cone = false;
-            }
-        }
-    }
-
-    if(is_inside_view_cone)
+    if(fc3d_rendering_octree_node_IsWithViewCone(node, rect, octree_v_pos, octree_q_rot, cam))
     {
         //Rasterization of the objects
         for(unsigned int i = 0 ; i < FC3D_OCTREE_NODE_NB_OBJECTS ; i++)
@@ -363,7 +371,7 @@ void OWL_VECTORCALL fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octr
                                                         owl_q32_transform_v3f32(octree_q_rot, rendering_obj->v_pos)
                                                      );
 
-                rendering_obj->rendering_obj_interface->Rasterization(rendering_obj->obj,img3d, rect , full_v_pos, full_q_rot, cam);
+                rendering_obj->rendering_obj_interface->Rasterization(rendering_obj->obj, img3d, rect , full_v_pos, full_q_rot, cam);
             }
         }
 
@@ -383,4 +391,49 @@ void OWL_VECTORCALL fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octr
         }
     }
 }
+
+//
+//
+//
+void fc3d_rendering_octree_node_DepthRasterization(fc3d_rendering_octree_node const* node, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+{
+    if(fc3d_rendering_octree_node_IsWithViewCone(node, rect, octree_v_pos, octree_q_rot, cam))
+    {
+        //Rasterization of the objects
+        for(unsigned int i = 0 ; i < FC3D_OCTREE_NODE_NB_OBJECTS ; i++)
+        {
+            fc3d_rendering_object const* rendering_obj = node->objects[i];
+
+            if(rendering_obj != NULL)
+            {
+                owl_q32 full_q_rot = owl_q32_mul(
+                                                    octree_q_rot,
+                                                    rendering_obj->q_rot
+                                                 );
+                owl_v3f32 full_v_pos = owl_v3f32_add(
+                                                        octree_v_pos,
+                                                        owl_q32_transform_v3f32(octree_q_rot, rendering_obj->v_pos)
+                                                     );
+
+                rendering_obj->rendering_obj_interface->DepthRasterization(rendering_obj->obj, depth_img, rect , full_v_pos, full_q_rot, cam);
+            }
+        }
+
+        //Rasterization of the auxiliary storage node
+        if(node->auxiliary_storage_node != NULL)
+        {
+            fc3d_rendering_octree_node_DepthRasterization(node->auxiliary_storage_node, depth_img, rect, octree_v_pos, octree_q_rot, cam);
+        }
+
+        //Rasterization of the children
+        for(unsigned int k = 0 ; k < 8 ; k++)
+        {
+            if(node->children[k] != NULL)
+            {
+                fc3d_rendering_octree_node_DepthRasterization(node->children[k], depth_img, rect, octree_v_pos, octree_q_rot, cam);
+            }
+        }
+    }
+}
+
 

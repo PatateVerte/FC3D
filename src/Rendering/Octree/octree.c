@@ -401,3 +401,12 @@ wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octr
 
     return error;
 }
+
+//
+//
+//
+void fc3d_RenderingOctree_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+{
+    fc3d_RenderingOctree const* octree = obj;
+    fc3d_rendering_octree_node_DepthRasterization(octree->node_0, depth_img, rect, v_pos, q_rot, cam);
+}

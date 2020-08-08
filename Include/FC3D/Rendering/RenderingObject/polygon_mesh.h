@@ -31,6 +31,9 @@ bool fc3d_PolygonMesh_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_po
 void fc3d_PolygonMesh_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam);
 
 //
+void fc3d_PolygonMesh_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam);
+
+//
 float fc3d_PolygonMesh_Radius(void const* obj);
 
 //

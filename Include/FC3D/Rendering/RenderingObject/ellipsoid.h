@@ -36,7 +36,31 @@ fc3d_Ellipsoid* fc3d_Ellipsoid_ReverseNormal(fc3d_Ellipsoid* ellipsoid);
 bool fc3d_Ellipsoid_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret);
 
 //
+//  RASTERIZATION
+//
+
+//
+typedef struct
+{
+    fc3d_Ellipsoid const* ellipsoid;
+    fc3d_Image3d* img3d;
+
+} fc3d_Ellipsoid_rasterization_callback_arg;
+void OWL_VECTORCALL fc3d_Ellipsoid_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal);
+
+//
 void fc3d_Ellipsoid_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam);
+
+//
+//  DEPTH RASTERIZATION
+//
+
+//
+void fc3d_Ellipsoid_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam);
+
+//
+//
+//
 
 //
 float fc3d_Ellipsoid_Radius(void const* obj);

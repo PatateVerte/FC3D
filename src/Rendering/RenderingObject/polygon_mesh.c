@@ -6,6 +6,7 @@ fc3d_rendering_object_interface const fc3d_PolygonMesh_rendering_interface =
 (fc3d_rendering_object_interface)   {
                                         .NearestIntersectionWithRay = &fc3d_PolygonMesh_NearestIntersectionWithRay,
                                         .Rasterization = &fc3d_PolygonMesh_Rasterization,
+                                        .DepthRasterization = &fc3d_PolygonMesh_DepthRasterization,
                                         .Radius = &fc3d_PolygonMesh_Radius,
                                         .InfRadiusWithTransform = &fc3d_PolygonMesh_InfRadiusWithTransform
                                     };
@@ -116,6 +117,19 @@ void fc3d_PolygonMesh_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_r
     for(unsigned int k = 0 ; k < mesh->nb_faces ; k++)
     {
         fc3d_monosurface_triangle_Rasterization(mesh->face_list + k, img3d, rect, v_pos, q_rot, cam);
+    }
+}
+
+//
+//
+//
+void fc3d_PolygonMesh_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+{
+    fc3d_PolygonMesh const* mesh = obj;
+
+    for(unsigned int k = 0 ; k < mesh->nb_faces ; k++)
+    {
+        fc3d_monosurface_triangle_DepthRasterization(mesh->face_list + k, depth_img, rect, v_pos, q_rot, cam);
     }
 }
 

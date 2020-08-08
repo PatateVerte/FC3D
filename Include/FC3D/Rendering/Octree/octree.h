@@ -57,4 +57,8 @@ wf3d_color OWL_VECTORCALL fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree c
 //Ray tracing
 wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octree, fc3d_image2d_rectangle* img_out, fc3d_Image3d** img3d_thread_buffer_list, unsigned short nb_threads, fc3d_lightsource const* const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam);
 
+//Depth rasterization
+void fc3d_RenderingOctree_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam);
+
+
 #endif // FC3D_OCTREE_H_INCLUDED
