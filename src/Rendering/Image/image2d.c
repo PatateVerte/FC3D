@@ -53,6 +53,40 @@ void fc3d_Image2d_Destroy(fc3d_Image2d* img)
 //
 //
 //
+wf3d_error fc3d_Image2d_SetPixel(fc3d_Image2d* img, int x, int y, wf3d_color const* color)
+{
+    if(0 <= x && x < img->width && 0 <= y && y < img->height)
+    {
+        size_t pixel_index = fc3d_Image2d_pixel_index(img, x, y);
+        wf3d_color_uint8_from_color(img->color + pixel_index, color);
+        return WF3D_SUCCESS;
+    }
+    else
+    {
+        return WF3D_IMAGE_ACCESS_ERROR;
+    }
+}
+
+//
+//
+//
+wf3d_error fc3d_Image2d_GetPixel(fc3d_Image2d* img, int x, int y, wf3d_color* ret_color)
+{
+    if(0 <= x && x < img->width && 0 <= y && y < img->height)
+    {
+        size_t pixel_index = fc3d_Image2d_pixel_index(img, x, y);
+        wf3d_color_from_color_uint8(ret_color, img->color + pixel_index);
+        return WF3D_SUCCESS;
+    }
+    else
+    {
+        return WF3D_IMAGE_ACCESS_ERROR;
+    }
+}
+
+//
+//
+//
 fc3d_Image2d* fc3d_Image2d_Clear(fc3d_Image2d* img, wf3d_color const* background_color)
 {
     size_t nb_pixels = (size_t)img->width *  (size_t)img->height;

@@ -37,6 +37,12 @@ static inline void fc3d_Image2d_unsafe_SetPixel(fc3d_Image2d* img, int x, int y,
 	wf3d_color_uint8_from_color(img->color + pixel_index, color);
 }
 
+//
+wf3d_error fc3d_Image2d_SetPixel(fc3d_Image2d* img, int x, int y, wf3d_color const* color);
+
+//
+wf3d_error fc3d_Image2d_GetPixel(fc3d_Image2d* img, int x, int y, wf3d_color* ret_color);
+
 //Write Image2d in a bitmap file
 int fc3d_Image2d_WriteInBMPFile(fc3d_Image2d const* img, FILE* bmp_file);
 
