@@ -1,13 +1,13 @@
 #include <FC3D/Rendering/RenderingObject/ellipsoid.h>
 
 fc3d_rendering_object_interface const fc3d_Ellipsoid_rendering_interface =
-(fc3d_rendering_object_interface)   {
-                                        .NearestIntersectionWithRay = &fc3d_Ellipsoid_NearestIntersectionWithRay,
-                                        .Rasterization = &fc3d_Ellipsoid_Rasterization,
-                                        .DepthRasterization = &fc3d_Ellipsoid_DepthRasterization,
-                                        .Radius = &fc3d_Ellipsoid_Radius,
-                                        .InfRadiusWithTransform = &fc3d_Ellipsoid_InfRadiusWithTransform
-                                    };
+{
+    .NearestIntersectionWithRay = &fc3d_Ellipsoid_NearestIntersectionWithRay,
+    .Rasterization = &fc3d_Ellipsoid_Rasterization,
+    .DepthRasterization = &fc3d_Ellipsoid_DepthRasterization,
+    .Radius = &fc3d_Ellipsoid_Radius,
+    .InfRadiusWithTransform = &fc3d_Ellipsoid_InfRadiusWithTransform
+};
 
 //
 //

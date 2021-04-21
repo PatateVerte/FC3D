@@ -4,9 +4,9 @@
 //
 //
 fc3d_lightsource_interface const fc3d_PunctualLightsource_interface =
-(fc3d_lightsource_interface)    {
-                                    .EnlightSurfacePoint = &fc3d_PunctualLightsource_EnlightSurfacePoint
-                                };
+{
+    .EnlightSurfacePoint = &fc3d_PunctualLightsource_EnlightSurfacePoint
+};
 
 //
 //
@@ -96,7 +96,7 @@ fc3d_PunctualLightsource* fc3d_PunctualLightsource_SetIntensity(fc3d_PunctualLig
 //From face coordinates to lightsource coordinates
 //
 //
-static float face_q_rot_coords_tab[6][4] OWL_ALIGN16 =
+static float OWL_ALIGN16 face_q_rot_coords_tab[6][4] =
 {
     {(float)OWL_SQRT2 / 2.0f, 0.0f, -(float)OWL_SQRT2 / 2.0f, 0.0f},
     {(float)OWL_SQRT2 / 2.0f, 0.0f, (float)OWL_SQRT2 / 2.0f, 0.0f},
@@ -231,11 +231,10 @@ fc3d_PunctualLightsource* fc3d_PunctualLightsource_UpdateShadowArea(fc3d_Punctua
                                                                                       );
 
                                 //
-                                float tang_intersection_coords[2] =
-                                {
-                                    owl_v3f32_unsafe_get_component(tang_intersection, 0),
-                                    owl_v3f32_unsafe_get_component(tang_intersection, 1)
-                                };
+                                float tang_intersection_coords[2];
+                                tang_intersection_coords[0] = owl_v3f32_unsafe_get_component(tang_intersection, 0);
+                                tang_intersection_coords[1] = owl_v3f32_unsafe_get_component(tang_intersection, 1);
+
                                 float tang_vect_coords[2][2];
                                 for(unsigned int p = 0 ; p < 2 ; p++)
                                 {
@@ -271,19 +270,19 @@ fc3d_PunctualLightsource* fc3d_PunctualLightsource_UpdateShadowArea(fc3d_Punctua
                             else
                             {
                                 float cos2_alpha = cos_opening_angle * cos_opening_angle;
-                                float u_coords[4] OWL_ALIGN16;
+                                float OWL_ALIGN16 u_coords[4];
                                 owl_v3f32_store4(u_coords, u);
 
                                 for(unsigned i = 0 ; i < 2 ; i++)
                                 {
                                     unsigned int j = (i + 1) % 2;
 
-                                    float o_coords[4] OWL_ALIGN16 = {0.0f, 0.0f, 0.0f, 0.0f};
+                                    float OWL_ALIGN16 o_coords[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                                     o_coords[j] = u_coords[j] * u_coords[2] / (u_coords[j] * u_coords[j] - cos2_alpha);
                                     o_coords[2] = -1.0f;
                                     owl_v3f32 o = owl_v3f32_load4(o_coords);
 
-                                    float w_coords[4] OWL_ALIGN16 = {0.0f, 0.0f, 0.0f, 0.0f};
+                                    float OWL_ALIGN16 w_coords[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                                     w_coords[i] = 1.0f;
                                     w_coords[j] = - u_coords[i] * u_coords[j] / (u_coords[j] * u_coords[j] - cos2_alpha);
                                     owl_v3f32 w = owl_v3f32_load4(w_coords);
@@ -407,7 +406,7 @@ wf3d_color OWL_VECTORCALL fc3d_PunctualLightsource_EnlightSurfacePoint(void* lig
     {
         unsigned int shadow_face_i = 0;
         {
-            float v_pos_coords[4] OWL_ALIGN16;
+            float OWL_ALIGN16 v_pos_coords[4];
             owl_v3f32_store4(v_pos_coords, v_pos);
 
             float f_max = 0.0f;

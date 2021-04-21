@@ -244,8 +244,14 @@ wf3d_error fc3d_Image2d_FXAA(fc3d_Image2d* img_out, fc3d_Image2d const* img_src)
                     wf3d_color_from_color_uint8(&colorM, img_src->color + pixel_index);
                     colorL = wf3d_color_mix(pixel_list, mix_coeff9, 9);
 
-                    float final_mix_coeff[2] = {1.0f - blendL, blendL};
-                    wf3d_color final_mix_color[2] = {colorM, colorL};
+                    float final_mix_coeff[2];
+                    final_mix_coeff[0] = 1.0f - blendL;
+                    final_mix_coeff[1] = blendL;
+
+                    wf3d_color final_mix_color[2];
+                    final_mix_color[0] = colorM;
+                    final_mix_color[1] = colorL;
+
                     wf3d_color final_color = wf3d_color_mix(final_mix_color, final_mix_coeff, 2);
 
                     wf3d_color_uint8_from_color(img_out->color + pixel_index, &final_color);

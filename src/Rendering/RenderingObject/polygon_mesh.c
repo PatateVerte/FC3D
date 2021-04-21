@@ -3,13 +3,13 @@
 #include <malloc.h>
 
 fc3d_rendering_object_interface const fc3d_PolygonMesh_rendering_interface =
-(fc3d_rendering_object_interface)   {
-                                        .NearestIntersectionWithRay = &fc3d_PolygonMesh_NearestIntersectionWithRay,
-                                        .Rasterization = &fc3d_PolygonMesh_Rasterization,
-                                        .DepthRasterization = &fc3d_PolygonMesh_DepthRasterization,
-                                        .Radius = &fc3d_PolygonMesh_Radius,
-                                        .InfRadiusWithTransform = &fc3d_PolygonMesh_InfRadiusWithTransform
-                                    };
+{
+    .NearestIntersectionWithRay = &fc3d_PolygonMesh_NearestIntersectionWithRay,
+    .Rasterization = &fc3d_PolygonMesh_Rasterization,
+    .DepthRasterization = &fc3d_PolygonMesh_DepthRasterization,
+    .Radius = &fc3d_PolygonMesh_Radius,
+    .InfRadiusWithTransform = &fc3d_PolygonMesh_InfRadiusWithTransform
+};
 
 //
 //

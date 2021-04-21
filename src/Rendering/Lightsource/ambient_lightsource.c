@@ -4,9 +4,9 @@
 //
 //
 fc3d_lightsource_interface const fc3d_AmbientLightsource_interface =
-(fc3d_lightsource_interface)    {
-                                    .EnlightSurfacePoint = &fc3d_AmbientLightsource_EnlightSurfacePoint
-                                };
+{
+    .EnlightSurfacePoint = &fc3d_AmbientLightsource_EnlightSurfacePoint
+};
 
 //
 //

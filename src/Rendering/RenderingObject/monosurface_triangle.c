@@ -3,13 +3,13 @@
 #include <math.h>
 
 fc3d_rendering_object_interface const fc3d_monosurface_triangle_rendering_interface =
-(fc3d_rendering_object_interface)   {
-                                        .NearestIntersectionWithRay = &fc3d_monosurface_triangle_NearestIntersectionWithRay,
-                                        .Rasterization = &fc3d_monosurface_triangle_Rasterization,
-                                        .DepthRasterization = &fc3d_monosurface_triangle_DepthRasterization,
-                                        .Radius = &fc3d_monosurface_triangle_Radius,
-                                        .InfRadiusWithTransform = &fc3d_monosurface_triangle_InfRadiusWithTransform
-                                    };
+{
+    .NearestIntersectionWithRay = &fc3d_monosurface_triangle_NearestIntersectionWithRay,
+    .Rasterization = &fc3d_monosurface_triangle_Rasterization,
+    .DepthRasterization = &fc3d_monosurface_triangle_DepthRasterization,
+    .Radius = &fc3d_monosurface_triangle_Radius,
+    .InfRadiusWithTransform = &fc3d_monosurface_triangle_InfRadiusWithTransform
+};
 
 //
 //
