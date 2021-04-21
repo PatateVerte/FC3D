@@ -1,6 +1,8 @@
 #ifndef FC3D_DEPTH_IMAGE_H_INCLUDED
 #define FC3D_DEPTH_IMAGE_H_INCLUDED
 
+#include <FC3D/fc3d.h>
+
 #include <OWL/Optimized3d/vector/v3f32.h>
 
 #include <WF3D/Rendering/Shapes/rasterization_attr.h>
@@ -15,16 +17,16 @@ typedef struct
 } fc3d_DepthImage;
 
 //Create DepthImage
-fc3d_DepthImage* fc3d_DepthImage_Create(int width, int height);
+FC3D_DLL_EXPORT fc3d_DepthImage* fc3d_DepthImage_Create(int width, int height);
 
 //Destroy DepthImage
-void fc3d_DepthImage_Destroy(fc3d_DepthImage* img);
+FC3D_DLL_EXPORT void fc3d_DepthImage_Destroy(fc3d_DepthImage* img);
 
 //Clear DepthImage
-fc3d_DepthImage* fc3d_DepthImage_Clear(fc3d_DepthImage* img);
+FC3D_DLL_EXPORT fc3d_DepthImage* fc3d_DepthImage_Clear(fc3d_DepthImage* img);
 
 //Partial Clear DepthImage
-fc3d_DepthImage* fc3d_DepthImage_PartialClear(fc3d_DepthImage* img, wf3d_rasterization_rectangle const* clear_rect);
+FC3D_DLL_EXPORT fc3d_DepthImage* fc3d_DepthImage_PartialClear(fc3d_DepthImage* img, wf3d_rasterization_rectangle const* clear_rect);
 
 //
 static inline size_t fc3d_DepthImage_pixel_index(fc3d_DepthImage const* img, int x, int y)
@@ -45,6 +47,6 @@ static inline void fc3d_DepthImage_unsafe_SetPixel(fc3d_DepthImage const* img, i
 }
 
 //callback_arg is a pointer to the depth_img
-void OWL_VECTORCALL fc3d_DepthImage_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal);
+FC3D_DLL_EXPORT void OWL_VECTORCALL fc3d_DepthImage_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal);
 
 #endif // FC3D_DEPTH_IMAGE_H_INCLUDED

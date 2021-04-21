@@ -2,7 +2,7 @@
 
 #include <malloc.h>
 
-fc3d_rendering_object_interface const fc3d_PolygonMesh_rendering_interface =
+FC3D_DLL_EXPORT fc3d_rendering_object_interface const fc3d_PolygonMesh_rendering_interface =
 {
     .NearestIntersectionWithRay = &fc3d_PolygonMesh_NearestIntersectionWithRay,
     .Rasterization = &fc3d_PolygonMesh_Rasterization,
@@ -14,7 +14,7 @@ fc3d_rendering_object_interface const fc3d_PolygonMesh_rendering_interface =
 //
 //
 //
-fc3d_PolygonMesh* fc3d_PolygonMesh_Create(unsigned int nb_faces, fc3d_monosurface_triangle const* face_list)
+FC3D_DLL_EXPORT fc3d_PolygonMesh* fc3d_PolygonMesh_Create(unsigned int nb_faces, fc3d_monosurface_triangle const* face_list)
 {
     fc3d_PolygonMesh* mesh = malloc(sizeof(*mesh));
 
@@ -40,7 +40,7 @@ fc3d_PolygonMesh* fc3d_PolygonMesh_Create(unsigned int nb_faces, fc3d_monosurfac
 //
 //
 //
-void fc3d_PolygonMesh_Destroy(fc3d_PolygonMesh* mesh)
+FC3D_DLL_EXPORT void fc3d_PolygonMesh_Destroy(fc3d_PolygonMesh* mesh)
 {
     if(mesh != NULL)
     {
@@ -53,7 +53,7 @@ void fc3d_PolygonMesh_Destroy(fc3d_PolygonMesh* mesh)
 //
 //
 //
-wf3d_error fc3d_PolygonMesh_ChangeAllFaces(fc3d_PolygonMesh* mesh, fc3d_monosurface_triangle const* new_face_list)
+FC3D_DLL_EXPORT wf3d_error fc3d_PolygonMesh_ChangeAllFaces(fc3d_PolygonMesh* mesh, fc3d_monosurface_triangle const* new_face_list)
 {
     wf3d_error error = WF3D_SUCCESS;
 
@@ -68,7 +68,7 @@ wf3d_error fc3d_PolygonMesh_ChangeAllFaces(fc3d_PolygonMesh* mesh, fc3d_monosurf
 //
 //
 //
-wf3d_error fc3d_PolygonMesh_ChangeOneFace(fc3d_PolygonMesh* mesh, unsigned int i, fc3d_monosurface_triangle const* new_face)
+FC3D_DLL_EXPORT wf3d_error fc3d_PolygonMesh_ChangeOneFace(fc3d_PolygonMesh* mesh, unsigned int i, fc3d_monosurface_triangle const* new_face)
 {
     wf3d_error error = WF3D_SUCCESS;
 
@@ -87,7 +87,7 @@ wf3d_error fc3d_PolygonMesh_ChangeOneFace(fc3d_PolygonMesh* mesh, unsigned int i
 //
 //
 //
-bool fc3d_PolygonMesh_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
+FC3D_DLL_EXPORT bool fc3d_PolygonMesh_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
 {
     fc3d_PolygonMesh const* mesh = obj;
 
@@ -110,7 +110,7 @@ bool fc3d_PolygonMesh_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_po
 //
 //
 //
-void fc3d_PolygonMesh_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_PolygonMesh_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
 {
     fc3d_PolygonMesh const* mesh = obj;
 
@@ -123,7 +123,7 @@ void fc3d_PolygonMesh_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_r
 //
 //
 //
-void fc3d_PolygonMesh_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_PolygonMesh_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
 {
     fc3d_PolygonMesh const* mesh = obj;
 
@@ -136,7 +136,7 @@ void fc3d_PolygonMesh_DepthRasterization(void const* obj, fc3d_DepthImage* depth
 //
 //
 //
-float fc3d_PolygonMesh_Radius(void const* obj)
+FC3D_DLL_EXPORT float fc3d_PolygonMesh_Radius(void const* obj)
 {
     fc3d_PolygonMesh const* mesh = obj;
     float square_radius = 0.0;
@@ -159,7 +159,7 @@ float fc3d_PolygonMesh_Radius(void const* obj)
 //
 //
 //
-float fc3d_PolygonMesh_InfRadiusWithTransform(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot)
+FC3D_DLL_EXPORT float fc3d_PolygonMesh_InfRadiusWithTransform(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot)
 {
     fc3d_PolygonMesh const* mesh = obj;
     float inf_radius = 0.0;

@@ -10,7 +10,7 @@
 //
 //
 //
-fc3d_Image3d* fc3d_Image3d_Create(int width, int height)
+FC3D_DLL_EXPORT fc3d_Image3d* fc3d_Image3d_Create(int width, int height)
 {
     fc3d_Image3d* img = malloc(sizeof(*img));
     size_t nb_pixels = (size_t)width * (size_t)height;
@@ -42,7 +42,7 @@ fc3d_Image3d* fc3d_Image3d_Create(int width, int height)
 //
 //
 //
-void fc3d_Image3d_Destroy(fc3d_Image3d* img)
+FC3D_DLL_EXPORT void fc3d_Image3d_Destroy(fc3d_Image3d* img)
 {
     if(img != NULL)
     {
@@ -58,7 +58,7 @@ void fc3d_Image3d_Destroy(fc3d_Image3d* img)
 //
 //
 //
-fc3d_Image3d* fc3d_Image3d_Clear(fc3d_Image3d* img)
+FC3D_DLL_EXPORT fc3d_Image3d* fc3d_Image3d_Clear(fc3d_Image3d* img)
 {
     size_t nb_pixels = (size_t)img->width *  (size_t)img->height;
 

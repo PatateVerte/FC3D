@@ -3,7 +3,7 @@
 //Set up a new node
 //
 //
-fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree_node* node, owl_v3f32 center, float half_size)
+FC3D_DLL_EXPORT fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree_node* node, owl_v3f32 center, float half_size)
 {
     node->center = center;
 
@@ -27,7 +27,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_Set(fc3d_rendering_octree
 //Activates children i
 //Return a pointer to the first child
 //
-fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering_octree_node* node, int i, fc3d_DataPool* octree_children_data_pool)
+FC3D_DLL_EXPORT fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering_octree_node* node, int i, fc3d_DataPool* octree_children_data_pool)
 {
     if(0 <= i && i < 8)
     {
@@ -70,7 +70,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_ChildrenOn(fc3d_rendering
 //Activates auxiliary storage
 //Return a pointer to the auxiliary node created
 //
-fc3d_rendering_octree_node* fc3d_rendering_octree_node_AuxStorageOn(fc3d_rendering_octree_node* node, fc3d_DataPool* octree_auxiliary_data_pool)
+FC3D_DLL_EXPORT fc3d_rendering_octree_node* fc3d_rendering_octree_node_AuxStorageOn(fc3d_rendering_octree_node* node, fc3d_DataPool* octree_auxiliary_data_pool)
 {
     if(node->auxiliary_storage_node == NULL)
     {
@@ -84,7 +84,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AuxStorageOn(fc3d_renderi
 //Insert an object into the node
 //
 //
-fc3d_rendering_octree_node* fc3d_rendering_octree_node_InsertObject(fc3d_rendering_octree_node* node, fc3d_rendering_object* obj, fc3d_DataPool* octree_auxiliary_data_pool)
+FC3D_DLL_EXPORT fc3d_rendering_octree_node* fc3d_rendering_octree_node_InsertObject(fc3d_rendering_octree_node* node, fc3d_rendering_object* obj, fc3d_DataPool* octree_auxiliary_data_pool)
 {
     bool has_been_inserted = false;
     for(int k = 0 ; k < FC3D_OCTREE_NODE_NB_OBJECTS && !has_been_inserted ; k++)
@@ -117,7 +117,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_InsertObject(fc3d_renderi
 //Add an object to the node or the children
 //
 //
-fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_octree_node* node, fc3d_rendering_object* obj, int max_depth, bool spatial_extension, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool)
+FC3D_DLL_EXPORT fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_octree_node* node, fc3d_rendering_object* obj, int max_depth, bool spatial_extension, fc3d_DataPool* octree_children_data_pool, fc3d_DataPool* octree_auxiliary_data_pool)
 {
     if(max_depth > 0)
     {
@@ -194,7 +194,7 @@ fc3d_rendering_octree_node* fc3d_rendering_octree_node_AddObject(fc3d_rendering_
 //
 //
 //
-bool fc3d_rendering_octree_node_IsWithViewCone(fc3d_rendering_octree_node const* node, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT bool fc3d_rendering_octree_node_IsWithViewCone(fc3d_rendering_octree_node const* node, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
 {
     //Is the node inside of the view cone ? (the node is considered to be a sphere)
     bool is_inside_view_cone = true;
@@ -265,23 +265,23 @@ bool fc3d_rendering_octree_node_IsWithViewCone(fc3d_rendering_octree_node const*
 //
 //
 //
-bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree_node const* node, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
+FC3D_DLL_EXPORT bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree_node const* node, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
 {
     bool intersection_exists = false;
     float t = t_max;
 
-    float node_center_coords[4] OWL_ALIGN16;
+    float OWL_ALIGN16 node_center_coords[4];
     owl_v3f32_store4(node_center_coords, node->center);
 
     bool node_has_intersection_with_ray = false;
     owl_q32 octree_q_rot_conj = owl_q32_conj(octree_q_rot);
 
     owl_v3f32 rel_ray_origin = owl_q32_transform_v3f32(octree_q_rot_conj, owl_v3f32_sub(ray_origin, octree_v_pos));
-    float rel_ray_origin_coords[4] OWL_ALIGN16;
+    float OWL_ALIGN16 rel_ray_origin_coords[4];
     owl_v3f32_store4(rel_ray_origin_coords, rel_ray_origin);
 
     owl_v3f32 rel_ray_dir = owl_q32_transform_v3f32(octree_q_rot_conj, ray_dir);
-    float rel_ray_dir_coords[4] OWL_ALIGN16;
+    float OWL_ALIGN16 rel_ray_dir_coords[4];
     owl_v3f32_store4(rel_ray_dir_coords, rel_ray_dir);
 
     for(unsigned int j = 0 ; j < 3 && !node_has_intersection_with_ray ; j++)
@@ -351,7 +351,7 @@ bool fc3d_rendering_octree_node_NearestIntersectionWithRay(fc3d_rendering_octree
 //Rasterization
 //
 //
-void fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node const* node, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node const* node, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
 {
     if(fc3d_rendering_octree_node_IsWithViewCone(node, rect, octree_v_pos, octree_q_rot, cam))
     {
@@ -395,7 +395,7 @@ void fc3d_rendering_octree_node_Rasterization(fc3d_rendering_octree_node const* 
 //
 //
 //
-void fc3d_rendering_octree_node_DepthRasterization(fc3d_rendering_octree_node const* node, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_rendering_octree_node_DepthRasterization(fc3d_rendering_octree_node const* node, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
 {
     if(fc3d_rendering_octree_node_IsWithViewCone(node, rect, octree_v_pos, octree_q_rot, cam))
     {

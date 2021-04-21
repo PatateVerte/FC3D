@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <FC3D/fc3d.h>
+
 #include <OWL/Optimized3d/vector/v3f32.h>
 
 #include <WF3D/error.h>
@@ -24,13 +26,13 @@ typedef struct
 } fc3d_Image3d;
 
 //
-fc3d_Image3d* fc3d_Image3d_Create(int width, int height);
+FC3D_DLL_EXPORT fc3d_Image3d* fc3d_Image3d_Create(int width, int height);
 
 //
-void fc3d_Image3d_Destroy(fc3d_Image3d* img);
+FC3D_DLL_EXPORT void fc3d_Image3d_Destroy(fc3d_Image3d* img);
 
 //
-fc3d_Image3d* fc3d_Image3d_Clear(fc3d_Image3d* img);
+FC3D_DLL_EXPORT fc3d_Image3d* fc3d_Image3d_Clear(fc3d_Image3d* img);
 
 static inline size_t fc3d_Image3d_pixel_index(fc3d_Image3d const* img, int x, int y)
 {

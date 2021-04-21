@@ -5,7 +5,7 @@
 //Create DepthImage
 //
 //
-fc3d_DepthImage* fc3d_DepthImage_Create(int width, int height)
+FC3D_DLL_EXPORT fc3d_DepthImage* fc3d_DepthImage_Create(int width, int height)
 {
     fc3d_DepthImage* img = malloc(sizeof(*img));
 
@@ -34,7 +34,7 @@ fc3d_DepthImage* fc3d_DepthImage_Create(int width, int height)
 //Destroy DepthImage
 //
 //
-void fc3d_DepthImage_Destroy(fc3d_DepthImage* img)
+FC3D_DLL_EXPORT void fc3d_DepthImage_Destroy(fc3d_DepthImage* img)
 {
     if(img != NULL)
     {
@@ -47,7 +47,7 @@ void fc3d_DepthImage_Destroy(fc3d_DepthImage* img)
 //Clear DepthImage
 //
 //
-fc3d_DepthImage* fc3d_DepthImage_Clear(fc3d_DepthImage* img)
+FC3D_DLL_EXPORT fc3d_DepthImage* fc3d_DepthImage_Clear(fc3d_DepthImage* img)
 {
     size_t size = (size_t)img->width * (size_t)img->height;
     for(size_t i = 0 ; i < size ; i++)
@@ -61,7 +61,7 @@ fc3d_DepthImage* fc3d_DepthImage_Clear(fc3d_DepthImage* img)
 //
 //
 //
-fc3d_DepthImage* fc3d_DepthImage_PartialClear(fc3d_DepthImage* img, wf3d_rasterization_rectangle const* clear_rect)
+FC3D_DLL_EXPORT fc3d_DepthImage* fc3d_DepthImage_PartialClear(fc3d_DepthImage* img, wf3d_rasterization_rectangle const* clear_rect)
 {
     for(int y = clear_rect->y_min ; y < clear_rect->y_max ; y++)
     {
@@ -77,7 +77,7 @@ fc3d_DepthImage* fc3d_DepthImage_PartialClear(fc3d_DepthImage* img, wf3d_rasteri
 //
 //
 //
-void OWL_VECTORCALL fc3d_DepthImage_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
+FC3D_DLL_EXPORT void OWL_VECTORCALL fc3d_DepthImage_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
 {
     fc3d_DepthImage const* depth_img = callback_arg;
 

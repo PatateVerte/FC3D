@@ -3,7 +3,7 @@
 //
 //
 //
-fc3d_lightsource_interface const fc3d_PunctualLightsource_interface =
+FC3D_DLL_EXPORT fc3d_lightsource_interface const fc3d_PunctualLightsource_interface =
 {
     .EnlightSurfacePoint = &fc3d_PunctualLightsource_EnlightSurfacePoint
 };
@@ -11,7 +11,7 @@ fc3d_lightsource_interface const fc3d_PunctualLightsource_interface =
 //
 //
 //
-fc3d_PunctualLightsource* fc3d_PunctualLightsource_Create(float r, float g, float b, bool shadow_mapping, int map_width, int map_height, float bias, float cam_near_clipping_distance)
+FC3D_DLL_EXPORT fc3d_PunctualLightsource* fc3d_PunctualLightsource_Create(float r, float g, float b, bool shadow_mapping, int map_width, int map_height, float bias, float cam_near_clipping_distance)
 {
     if(map_width > 0 && map_height > 0)
     {
@@ -70,7 +70,7 @@ fc3d_PunctualLightsource* fc3d_PunctualLightsource_Create(float r, float g, floa
 //
 //
 //
-void fc3d_PunctualLightsource_Destroy(fc3d_PunctualLightsource* lightsource)
+FC3D_DLL_EXPORT void fc3d_PunctualLightsource_Destroy(fc3d_PunctualLightsource* lightsource)
 {
     if(lightsource != NULL)
     {
@@ -86,7 +86,7 @@ void fc3d_PunctualLightsource_Destroy(fc3d_PunctualLightsource* lightsource)
 //
 //
 //
-fc3d_PunctualLightsource* fc3d_PunctualLightsource_SetIntensity(fc3d_PunctualLightsource* lightsource, float new_r, float new_g, float new_b)
+FC3D_DLL_EXPORT fc3d_PunctualLightsource* fc3d_PunctualLightsource_SetIntensity(fc3d_PunctualLightsource* lightsource, float new_r, float new_g, float new_b)
 {
     lightsource->color = wf3d_color_set(new_r, new_g, new_b);
 
@@ -120,7 +120,7 @@ static float OWL_ALIGN16 face_q_rot_coords_tab[6][4] =
 //
 //
 //
-fc3d_PunctualLightsource* fc3d_PunctualLightsource_UpdateShadowArea(fc3d_PunctualLightsource* lightsource, fc3d_RenderingOctree const* octree, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, owl_v3f32 area_center, float area_radius)
+FC3D_DLL_EXPORT fc3d_PunctualLightsource* fc3d_PunctualLightsource_UpdateShadowArea(fc3d_PunctualLightsource* lightsource, fc3d_RenderingOctree const* octree, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, owl_v3f32 area_center, float area_radius)
 {
     if(lightsource->shadow_mapping)
     {
@@ -395,7 +395,7 @@ fc3d_PunctualLightsource* fc3d_PunctualLightsource_UpdateShadowArea(fc3d_Punctua
 //
 //
 //
-wf3d_color OWL_VECTORCALL fc3d_PunctualLightsource_EnlightSurfacePoint(void* lightsource_obj, wf3d_surface const* surface, wf3d_color diffusion_color, owl_v3f32 v_pos, owl_v3f32 normal, owl_v3f32 vision_ray_dir)
+FC3D_DLL_EXPORT wf3d_color OWL_VECTORCALL fc3d_PunctualLightsource_EnlightSurfacePoint(void* lightsource_obj, wf3d_surface const* surface, wf3d_color diffusion_color, owl_v3f32 v_pos, owl_v3f32 normal, owl_v3f32 vision_ray_dir)
 {
     fc3d_PunctualLightsource const* lightsource = lightsource_obj;
     wf3d_color final_color = wf3d_color_black();

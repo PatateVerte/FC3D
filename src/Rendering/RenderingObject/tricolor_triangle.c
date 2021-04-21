@@ -4,7 +4,7 @@
 
 #include <math.h>
 
-fc3d_rendering_object_interface const fc3d_tricolor_triangle_rendering_interface =
+FC3D_DLL_EXPORT fc3d_rendering_object_interface const fc3d_tricolor_triangle_rendering_interface =
 {
     .NearestIntersectionWithRay = &fc3d_tricolor_triangle_NearestIntersectionWithRay,
     .Rasterization = &fc3d_tricolor_triangle_Rasterization,
@@ -16,7 +16,7 @@ fc3d_rendering_object_interface const fc3d_tricolor_triangle_rendering_interface
 //
 //
 //
-bool fc3d_tricolor_triangle_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
+FC3D_DLL_EXPORT bool fc3d_tricolor_triangle_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
 {
     fc3d_tricolor_triangle const* tri_triangle = obj;
 
@@ -75,7 +75,7 @@ bool fc3d_tricolor_triangle_NearestIntersectionWithRay(void const* obj, owl_v3f3
 //
 //
 //
-void OWL_VECTORCALL fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
+FC3D_DLL_EXPORT void OWL_VECTORCALL fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
 {
     fc3d_tricolor_triangle_rasterization_callback_arg const* arg = callback_arg;
     fc3d_tricolor_triangle const* tri_triangle = arg->tri_triangle;
@@ -109,7 +109,7 @@ void OWL_VECTORCALL fc3d_tricolor_triangle_rasterization_callback(wf3d_rasteriza
 //
 //
 //
-void fc3d_tricolor_triangle_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_tricolor_triangle_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
 {
     fc3d_tricolor_triangle const* tri_triangle = obj;
 
@@ -139,7 +139,7 @@ void fc3d_tricolor_triangle_Rasterization(void const* obj, fc3d_Image3d* img3d, 
 }
 
 //
-void fc3d_tricolor_triangle_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_tricolor_triangle_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
 {
     fc3d_tricolor_triangle const* tri_triangle = obj;
 
@@ -153,7 +153,7 @@ void fc3d_tricolor_triangle_DepthRasterization(void const* obj, fc3d_DepthImage*
 //
 //
 //
-float fc3d_tricolor_triangle_Radius(void const* obj)
+FC3D_DLL_EXPORT float fc3d_tricolor_triangle_Radius(void const* obj)
 {
     fc3d_tricolor_triangle const* tri_triangle = obj;
     wf3d_triangle3d const* triangle = &tri_triangle->triangle3d;
@@ -174,7 +174,7 @@ float fc3d_tricolor_triangle_Radius(void const* obj)
 //
 //
 //
-float fc3d_tricolor_triangle_InfRadiusWithTransform(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot)
+FC3D_DLL_EXPORT float fc3d_tricolor_triangle_InfRadiusWithTransform(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot)
 {
     fc3d_tricolor_triangle const* tri_triangle = obj;
     wf3d_triangle3d const* triangle = &tri_triangle->triangle3d;

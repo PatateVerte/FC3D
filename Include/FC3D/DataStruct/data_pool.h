@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <FC3D/fc3d.h>
+
 #include <FC3D/DataStruct/linked_list.h>
 
 typedef struct
@@ -23,20 +25,20 @@ typedef struct
 
 //Create a DataPool
 //data_block_len must be at least 1
-fc3d_DataPool* fc3d_DataPool_Create(size_t data_block_len, size_t data_size);
+FC3D_DLL_EXPORT fc3d_DataPool* fc3d_DataPool_Create(size_t data_block_len, size_t data_size);
 
 //Destroy a DataPool
-void fc3d_DataPool_Destroy(fc3d_DataPool* data_pool);
+FC3D_DLL_EXPORT void fc3d_DataPool_Destroy(fc3d_DataPool* data_pool);
 
 //Rewind a DataPool
 //Return a pointer to the first data
 //Cannot fail
-void* fc3d_DataPool_Rewind(fc3d_DataPool* data_pool);
+FC3D_DLL_EXPORT void* fc3d_DataPool_Rewind(fc3d_DataPool* data_pool);
 
 //Get the current data
-void* fc3d_DataPool_GetCurrentData(fc3d_DataPool* data_pool);
+FC3D_DLL_EXPORT void* fc3d_DataPool_GetCurrentData(fc3d_DataPool* data_pool);
 
 //Next data
-void* fc3d_DataPool_NextData(fc3d_DataPool* data_pool);
+FC3D_DLL_EXPORT void* fc3d_DataPool_NextData(fc3d_DataPool* data_pool);
 
 #endif // FC3D_DATA_POOL_H_INCLUDED

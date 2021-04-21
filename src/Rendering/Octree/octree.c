@@ -5,7 +5,7 @@
 //Create an RenderingOctree
 //
 //
-fc3d_RenderingOctree* fc3d_RenderingOctree_Create(float half_size, int max_depth, size_t children_data_pool_block_len, size_t auxiliary_data_pool_block_len)
+FC3D_DLL_EXPORT fc3d_RenderingOctree* fc3d_RenderingOctree_Create(float half_size, int max_depth, size_t children_data_pool_block_len, size_t auxiliary_data_pool_block_len)
 {
     fc3d_RenderingOctree* octree = malloc(sizeof(*octree));
 
@@ -35,7 +35,7 @@ fc3d_RenderingOctree* fc3d_RenderingOctree_Create(float half_size, int max_depth
 //Destroy an RenderingOctree
 //
 //
-void fc3d_RenderingOctree_Destroy(fc3d_RenderingOctree* octree)
+FC3D_DLL_EXPORT void fc3d_RenderingOctree_Destroy(fc3d_RenderingOctree* octree)
 {
     if(octree != NULL)
     {
@@ -49,7 +49,7 @@ void fc3d_RenderingOctree_Destroy(fc3d_RenderingOctree* octree)
 //Rewind an octree
 //Cannot fail
 //
-fc3d_rendering_octree_node* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* octree)
+FC3D_DLL_EXPORT fc3d_rendering_octree_node* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* octree)
 {
     octree->node_0 = fc3d_DataPool_Rewind(octree->octree_children_data_pool);
     fc3d_DataPool_Rewind(octree->octree_auxiliary_data_pool);
@@ -60,7 +60,7 @@ fc3d_rendering_octree_node* fc3d_RenderingOctree_Rewind(fc3d_RenderingOctree* oc
 //Add an object into the octree
 //
 //
-fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree* octree, fc3d_rendering_object* obj, bool spatial_extension)
+FC3D_DLL_EXPORT fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree* octree, fc3d_rendering_object* obj, bool spatial_extension)
 {
     if(octree == NULL)
     {
@@ -88,7 +88,7 @@ fc3d_rendering_octree_node* fc3d_RenderingOctree_AddObject(fc3d_RenderingOctree*
 //||ray_dir|| = 1
 //
 //
-wf3d_color OWL_VECTORCALL fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, fc3d_octree_point_color_attr const* attr, owl_v3f32 cam_ray_dir, owl_v3f32 v_pos, owl_v3f32 normal, wf3d_surface const* surface, wf3d_color diffusion_color, int max_nb_reflections)
+FC3D_DLL_EXPORT wf3d_color OWL_VECTORCALL fc3d_RenderingOctree_PointColor(fc3d_RenderingOctree const* octree, fc3d_octree_point_color_attr const* attr, owl_v3f32 cam_ray_dir, owl_v3f32 v_pos, owl_v3f32 normal, wf3d_surface const* surface, wf3d_color diffusion_color, int max_nb_reflections)
 {
     wf3d_color final_color = wf3d_color_black();
 
@@ -322,7 +322,7 @@ static void* wf3d_octree_multithreaded_ray_tracing(void* ptr)
 //Multithread ray tracing
 //img3d_thread_buffer_list must contain nb_threads elements of the same size (width and height)
 //
-wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octree, fc3d_image2d_rectangle* img_out, fc3d_Image3d** img3d_thread_buffer_list, unsigned short nb_threads, fc3d_lightsource const* const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octree, fc3d_image2d_rectangle* img_out, fc3d_Image3d** img3d_thread_buffer_list, unsigned short nb_threads, fc3d_lightsource const* const* lightsource_list, unsigned int nb_lightsources, owl_v3f32 octree_v_pos, owl_q32 octree_q_rot, wf3d_camera3d const* cam)
 {
     wf3d_error error = WF3D_SUCCESS;
 
@@ -405,7 +405,7 @@ wf3d_error fc3d_RenderingOctree_MultiThreadRayTracing(fc3d_RenderingOctree* octr
 //
 //
 //
-void fc3d_RenderingOctree_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_RenderingOctree_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
 {
     fc3d_RenderingOctree const* octree = obj;
     fc3d_rendering_octree_node_DepthRasterization(octree->node_0, depth_img, rect, v_pos, q_rot, cam);

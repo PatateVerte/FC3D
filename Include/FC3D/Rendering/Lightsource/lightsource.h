@@ -1,6 +1,8 @@
 #ifndef FC3D_LIGHTSOURCE_H_INCLUDED
 #define FC3D_LIGHTSOURCE_H_INCLUDED
 
+#include <FC3D/fc3d.h>
+
 #include <OWL/Optimized3d/vector/v3f32.h>
 #include <OWL/Optimized3d/quaternion/q32.h>
 

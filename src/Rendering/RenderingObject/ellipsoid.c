@@ -1,6 +1,6 @@
 #include <FC3D/Rendering/RenderingObject/ellipsoid.h>
 
-fc3d_rendering_object_interface const fc3d_Ellipsoid_rendering_interface =
+FC3D_DLL_EXPORT fc3d_rendering_object_interface const fc3d_Ellipsoid_rendering_interface =
 {
     .NearestIntersectionWithRay = &fc3d_Ellipsoid_NearestIntersectionWithRay,
     .Rasterization = &fc3d_Ellipsoid_Rasterization,
@@ -12,7 +12,7 @@ fc3d_rendering_object_interface const fc3d_Ellipsoid_rendering_interface =
 //
 //
 //
-fc3d_Ellipsoid* fc3d_Ellipsoid_Create(float rx, float ry, float rz, wf3d_surface const* surface, wf3d_color const* diffusion_color)
+FC3D_DLL_EXPORT fc3d_Ellipsoid* fc3d_Ellipsoid_Create(float rx, float ry, float rz, wf3d_surface const* surface, wf3d_color const* diffusion_color)
 {
     fc3d_Ellipsoid* ellipsoid = malloc(sizeof(*ellipsoid));
 
@@ -29,7 +29,7 @@ fc3d_Ellipsoid* fc3d_Ellipsoid_Create(float rx, float ry, float rz, wf3d_surface
 //
 //
 //
-void fc3d_Ellipsoid_Destroy(fc3d_Ellipsoid* ellispoid)
+FC3D_DLL_EXPORT void fc3d_Ellipsoid_Destroy(fc3d_Ellipsoid* ellispoid)
 {
     if(ellispoid != NULL)
     {
@@ -40,7 +40,7 @@ void fc3d_Ellipsoid_Destroy(fc3d_Ellipsoid* ellispoid)
 //Updates the three axes
 //
 //
-fc3d_Ellipsoid* fc3d_Ellipsoid_UpdateAxis(fc3d_Ellipsoid* ellipsoid, float rx, float ry, float rz)
+FC3D_DLL_EXPORT fc3d_Ellipsoid* fc3d_Ellipsoid_UpdateAxis(fc3d_Ellipsoid* ellipsoid, float rx, float ry, float rz)
 {
     ellipsoid->r[0] = rx;
     ellipsoid->r[1] = ry;
@@ -62,7 +62,7 @@ fc3d_Ellipsoid* fc3d_Ellipsoid_UpdateAxis(fc3d_Ellipsoid* ellipsoid, float rx, f
 //Update one axis
 //
 //
-fc3d_Ellipsoid* fc3d_Ellipsoid_UpdateOneAxis(fc3d_Ellipsoid* ellipsoid, unsigned int axis, float r)
+FC3D_DLL_EXPORT fc3d_Ellipsoid* fc3d_Ellipsoid_UpdateOneAxis(fc3d_Ellipsoid* ellipsoid, unsigned int axis, float r)
 {
     if(axis < 3)
     {
@@ -76,7 +76,7 @@ fc3d_Ellipsoid* fc3d_Ellipsoid_UpdateOneAxis(fc3d_Ellipsoid* ellipsoid, unsigned
 //Reverse the normal
 //
 //
-fc3d_Ellipsoid* fc3d_Ellipsoid_ReverseNormal(fc3d_Ellipsoid* ellipsoid)
+FC3D_DLL_EXPORT fc3d_Ellipsoid* fc3d_Ellipsoid_ReverseNormal(fc3d_Ellipsoid* ellipsoid)
 {
     ellipsoid->curve.alpha = owl_v3f32_scalar_mul(ellipsoid->curve.alpha, -1.0f);
     ellipsoid->curve.c *= -1.0f;
@@ -87,7 +87,7 @@ fc3d_Ellipsoid* fc3d_Ellipsoid_ReverseNormal(fc3d_Ellipsoid* ellipsoid)
 //
 //
 //
-bool fc3d_Ellipsoid_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
+FC3D_DLL_EXPORT bool fc3d_Ellipsoid_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot, owl_v3f32 ray_origin, owl_v3f32 ray_dir, float t_min, float t_max, float* t_ret, owl_v3f32* normal_ret, wf3d_surface const** surface_ret, wf3d_color* diffusion_color_ret)
 {
     fc3d_Ellipsoid const* ellipsoid = obj;
 
@@ -112,7 +112,7 @@ bool fc3d_Ellipsoid_NearestIntersectionWithRay(void const* obj, owl_v3f32 v_pos,
 //
 //
 //
-void OWL_VECTORCALL fc3d_Ellipsoid_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
+FC3D_DLL_EXPORT void OWL_VECTORCALL fc3d_Ellipsoid_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal)
 {
     fc3d_Ellipsoid_rasterization_callback_arg const* arg = callback_arg;
     fc3d_Ellipsoid const* ellipsoid = arg->ellipsoid;
@@ -130,7 +130,7 @@ void OWL_VECTORCALL fc3d_Ellipsoid_rasterization_callback(wf3d_rasterization_rec
 //
 //
 //
-void fc3d_Ellipsoid_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_Ellipsoid_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
 {
     fc3d_Ellipsoid const* ellipsoid = obj;
 
@@ -148,7 +148,7 @@ void fc3d_Ellipsoid_Rasterization(void const* obj, fc3d_Image3d* img3d, wf3d_ras
 //
 //
 //
-void fc3d_Ellipsoid_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
+FC3D_DLL_EXPORT void fc3d_Ellipsoid_DepthRasterization(void const* obj, fc3d_DepthImage* depth_img, wf3d_rasterization_rectangle const* rect, owl_v3f32 v_pos, owl_q32 q_rot, wf3d_camera3d const* cam)
 {
     fc3d_Ellipsoid const* ellipsoid = obj;
 
@@ -162,7 +162,7 @@ void fc3d_Ellipsoid_DepthRasterization(void const* obj, fc3d_DepthImage* depth_i
 //
 //
 //
-float fc3d_Ellipsoid_Radius(void const* obj)
+FC3D_DLL_EXPORT float fc3d_Ellipsoid_Radius(void const* obj)
 {
     fc3d_Ellipsoid const* ellipsoid = obj;
     return fmaxf(ellipsoid->r[2], fmaxf(ellipsoid->r[1], ellipsoid->r[0]));
@@ -171,7 +171,7 @@ float fc3d_Ellipsoid_Radius(void const* obj)
 //
 //
 //
-float fc3d_Ellipsoid_InfRadiusWithTransform(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot)
+FC3D_DLL_EXPORT float fc3d_Ellipsoid_InfRadiusWithTransform(void const* obj, owl_v3f32 v_pos, owl_q32 q_rot)
 {
     fc3d_Ellipsoid const* ellipsoid = obj;
 

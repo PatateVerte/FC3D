@@ -3,7 +3,7 @@
 //
 //
 //
-fc3d_lightsource_interface const fc3d_DirectionalLightsource_interface =
+FC3D_DLL_EXPORT fc3d_lightsource_interface const fc3d_DirectionalLightsource_interface =
 {
     .EnlightSurfacePoint = &fc3d_DirectionalLightsource_EnlightSurfacePoint
 };
@@ -11,7 +11,7 @@ fc3d_lightsource_interface const fc3d_DirectionalLightsource_interface =
 //
 //
 //
-fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_Create(owl_v3f32 dir_vect, float r, float g, float b)
+FC3D_DLL_EXPORT fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_Create(owl_v3f32 dir_vect, float r, float g, float b)
 {
     fc3d_DirectionalLightsource* lightsource = malloc(sizeof(*lightsource));
 
@@ -27,7 +27,7 @@ fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_Create(owl_v3f32 dir_ve
 //
 //
 //
-void fc3d_DirectionalLightsource_Destroy(fc3d_DirectionalLightsource* lightsource)
+FC3D_DLL_EXPORT void fc3d_DirectionalLightsource_Destroy(fc3d_DirectionalLightsource* lightsource)
 {
     if(lightsource != NULL)
     {
@@ -38,7 +38,7 @@ void fc3d_DirectionalLightsource_Destroy(fc3d_DirectionalLightsource* lightsourc
 //
 //
 //
-fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_SetDirVect(fc3d_DirectionalLightsource* lightsource,owl_v3f32 new_dir_vect)
+FC3D_DLL_EXPORT fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_SetDirVect(fc3d_DirectionalLightsource* lightsource,owl_v3f32 new_dir_vect)
 {
     lightsource->dir_vect = new_dir_vect;
     return lightsource;
@@ -48,7 +48,7 @@ fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_SetDirVect(fc3d_Directi
 //
 //
 //
-fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_SetIntensity(fc3d_DirectionalLightsource* lightsource, float new_r, float new_g, float new_b)
+FC3D_DLL_EXPORT fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_SetIntensity(fc3d_DirectionalLightsource* lightsource, float new_r, float new_g, float new_b)
 {
     lightsource->color = wf3d_color_set(new_r, new_g, new_b);
 
@@ -58,7 +58,7 @@ fc3d_DirectionalLightsource* fc3d_DirectionalLightsource_SetIntensity(fc3d_Direc
 //
 //
 //
-wf3d_color OWL_VECTORCALL fc3d_DirectionalLightsource_EnlightSurfacePoint(void* lightsource_obj, wf3d_surface const* surface, wf3d_color diffusion_color, owl_v3f32 v_pos, owl_v3f32 normal, owl_v3f32 vision_ray_dir)
+FC3D_DLL_EXPORT wf3d_color OWL_VECTORCALL fc3d_DirectionalLightsource_EnlightSurfacePoint(void* lightsource_obj, wf3d_surface const* surface, wf3d_color diffusion_color, owl_v3f32 v_pos, owl_v3f32 normal, owl_v3f32 vision_ray_dir)
 {
     fc3d_DirectionalLightsource const* lightsource = lightsource_obj;
     wf3d_color final_color = wf3d_color_black();

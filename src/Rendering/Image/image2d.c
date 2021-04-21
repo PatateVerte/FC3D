@@ -10,7 +10,7 @@
 //
 //
 //
-fc3d_Image2d* fc3d_Image2d_Create(int width, int height)
+FC3D_DLL_EXPORT fc3d_Image2d* fc3d_Image2d_Create(int width, int height)
 {
     fc3d_Image2d* img = malloc(sizeof(*img));
     size_t nb_pixels = (size_t)width * (size_t)height;
@@ -40,7 +40,7 @@ fc3d_Image2d* fc3d_Image2d_Create(int width, int height)
 //
 //
 //
-void fc3d_Image2d_Destroy(fc3d_Image2d* img)
+FC3D_DLL_EXPORT void fc3d_Image2d_Destroy(fc3d_Image2d* img)
 {
     if(img != NULL)
     {
@@ -53,7 +53,7 @@ void fc3d_Image2d_Destroy(fc3d_Image2d* img)
 //
 //
 //
-wf3d_error fc3d_Image2d_SetPixel(fc3d_Image2d* img, int x, int y, wf3d_color const* color)
+FC3D_DLL_EXPORT wf3d_error fc3d_Image2d_SetPixel(fc3d_Image2d* img, int x, int y, wf3d_color const* color)
 {
     if(0 <= x && x < img->width && 0 <= y && y < img->height)
     {
@@ -70,7 +70,7 @@ wf3d_error fc3d_Image2d_SetPixel(fc3d_Image2d* img, int x, int y, wf3d_color con
 //
 //
 //
-wf3d_error fc3d_Image2d_GetPixel(fc3d_Image2d* img, int x, int y, wf3d_color* ret_color)
+FC3D_DLL_EXPORT wf3d_error fc3d_Image2d_GetPixel(fc3d_Image2d* img, int x, int y, wf3d_color* ret_color)
 {
     if(0 <= x && x < img->width && 0 <= y && y < img->height)
     {
@@ -87,7 +87,7 @@ wf3d_error fc3d_Image2d_GetPixel(fc3d_Image2d* img, int x, int y, wf3d_color* re
 //
 //
 //
-fc3d_Image2d* fc3d_Image2d_Clear(fc3d_Image2d* img, wf3d_color const* background_color)
+FC3D_DLL_EXPORT fc3d_Image2d* fc3d_Image2d_Clear(fc3d_Image2d* img, wf3d_color const* background_color)
 {
     size_t nb_pixels = (size_t)img->width *  (size_t)img->height;
 
@@ -105,7 +105,7 @@ fc3d_Image2d* fc3d_Image2d_Clear(fc3d_Image2d* img, wf3d_color const* background
 //
 //
 //
-int fc3d_Image2d_WriteInBMPFile(fc3d_Image2d const* img, FILE* bmp_file)
+FC3D_DLL_EXPORT int fc3d_Image2d_WriteInBMPFile(fc3d_Image2d const* img, FILE* bmp_file)
 {
     #define DIB_HEADER_SIZE 40
 
@@ -195,7 +195,7 @@ int fc3d_Image2d_WriteInBMPFile(fc3d_Image2d const* img, FILE* bmp_file)
 #define FXAA_SUBPIX_CAP 0.75
 
 //
-wf3d_error fc3d_Image2d_FXAA(fc3d_Image2d* img_out, fc3d_Image2d const* img_src)
+FC3D_DLL_EXPORT wf3d_error fc3d_Image2d_FXAA(fc3d_Image2d* img_out, fc3d_Image2d const* img_src)
 {
     wf3d_error error = WF3D_SUCCESS;
 
