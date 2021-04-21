@@ -29,9 +29,9 @@ FC3D_DLL_EXPORT bool fc3d_tricolor_triangle_NearestIntersectionWithRay(void cons
 typedef struct
 {
     fc3d_tricolor_triangle const* tri_triangle;
+    fc3d_Image3d* img3d;
     owl_v3f32 opp_side_cross_normal[3];
     owl_v3f32 transformed_next_vertex[3];
-    fc3d_Image3d* img3d;
 
 } fc3d_tricolor_triangle_rasterization_callback_arg;
 FC3D_DLL_EXPORT void OWL_VECTORCALL fc3d_tricolor_triangle_rasterization_callback(wf3d_rasterization_rectangle const* rect, int x, int y, void const* callback_arg, owl_v3f32 v_intersection, owl_v3f32 normal);
