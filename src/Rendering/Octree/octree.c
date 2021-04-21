@@ -1,5 +1,8 @@
 #include <FC3D/Rendering/Octree/octree.h>
 
+#ifdef FC3D_MSVC
+    #define HAVE_STRUCT_TIMESPEC
+#endif
 #include <pthread.h>
 
 //Create an RenderingOctree
