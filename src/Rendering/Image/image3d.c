@@ -47,7 +47,7 @@ FC3D_DLL_EXPORT void fc3d_Image3d_Destroy(fc3d_Image3d* img)
     if(img != NULL)
     {
         free(img->depth_buffer);
-        free(img->surface);
+        free((void*)img->surface);
         free(img->diffusion_color);
         _aligned_free(img->normal);
 

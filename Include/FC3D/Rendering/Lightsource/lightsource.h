@@ -20,10 +20,10 @@ typedef struct
 typedef struct
 {
     void* lightsource_obj;
+    fc3d_lightsource_interface const* lightsource_interface;
+
     owl_v3f32 v_pos;
     owl_q32 q_rot;
-
-    fc3d_lightsource_interface const* lightsource_interface;
 
 } fc3d_lightsource;
 
